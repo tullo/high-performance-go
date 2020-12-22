@@ -26,3 +26,11 @@ fib-bench-fib1-iterations: # run your code exactly benchtime times | -benchtime
 	go test -run=^$$ -bench=Fib1 -benchtime=50x ./examples/fib
 	go test -run=^$$ -bench=Fib1 -benchtime=100x ./examples/fib
 	go test -run=^$$ -bench=Fib1 -benchtime=300x ./examples/fib
+
+fib-bench-fib20-benchstat: # run benchmarks 10x and compare with benchstat 
+	go test -run=^$$ -bench=Fib20 -count=10 ./examples/fib/ | tee old.txt
+	$$(go env GOPATH)/bin/benchstat old.txt
+# 	save the test binary
+	go test -c ./examples/fib/ 
+	@mv fib.test fib.golden
+	@ls -lh | awk '{print $$5,$$9}' | grep 'fib.'

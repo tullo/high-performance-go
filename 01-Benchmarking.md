@@ -251,23 +251,23 @@ Here is an example of Fib(20):
 #
 go test -bench=Fib20 -count=10 ./examples/fib/ | tee old.txt
 
-BenchmarkFib20-12    	   53785	     21726 ns/op
-BenchmarkFib20-12    	   55191	     21820 ns/op
-BenchmarkFib20-12    	   54418	     21877 ns/op
-BenchmarkFib20-12    	   54381	     21777 ns/op
-BenchmarkFib20-12    	   54322	     21735 ns/op
-BenchmarkFib20-12    	   54363	     21755 ns/op
-BenchmarkFib20-12    	   55258	     22076 ns/op
-BenchmarkFib20-12    	   54241	     21734 ns/op
-BenchmarkFib20-12    	   55202	     22030 ns/op
-BenchmarkFib20-12    	   55154	     21691 ns/op
+BenchmarkFib20-12    	   33691	     35207 ns/op
+BenchmarkFib20-12    	   34060	     35272 ns/op
+BenchmarkFib20-12    	   34057	     35240 ns/op
+BenchmarkFib20-12    	   33902	     35220 ns/op
+BenchmarkFib20-12    	   33418	     35857 ns/op
+BenchmarkFib20-12    	   33747	     35937 ns/op
+BenchmarkFib20-12    	   33400	     35214 ns/op
+BenchmarkFib20-12    	   33879	     35871 ns/op
+BenchmarkFib20-12    	   34027	     35193 ns/op
+BenchmarkFib20-12    	   33488	     35194 ns/op
 
 $(go env GOPATH)/bin/benchstat old.txt
 name      time/op
-Fib20-12  21.8µs ± 1%
+Fib20-12  35.4µs ± 1%
 ```
 
-`benchstat` tells us the `mean` is 21.8 microseconds with a +/- 1% `variation` across the samples. This is because while the benchmark was running I didn’t touch the machine.
+`benchstat` tells us the `mean` is 35.4 microseconds with a +/- 1% `variation` across the samples. This is because while the benchmark was running I didn’t touch the machine.
 
 ### 1.3.1. Improve `Fib`
 
