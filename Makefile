@@ -61,6 +61,22 @@ benchmarks-report-benchmem:	# reports allocs for ==> ALL benchmarks
 	go test -run=^$$ -bench=. -benchmem bufio
 
 compiler-optimisation-inline:	# compiler inlines leaf function
-	go test -run=^$$ -gcflags=-S -bench=PopcntInline ./examples/popcnt
-	# -gcflags=-S      # -S assembly output
-	# -gcflags="-l -S" # -l disable inlining
+# 	-gcflags=-S      # -S assembly output
+# 	-gcflags="-l -S" # -l disable inlining
+	@go test -run=^$$ -gcflags="-S -m=2 -d=ssa/prove/debug=on" -bench=PopcntInline ./examples/popcnt 2>popcnt.txt
+#	@grep -v PCDATA popcnt.txt | grep -v FUNCDATA | grep -C 3 "inlining call to popcnt"
+	@echo
+	@echo "1. compiler inlined popcnt function body"
+	@echo "2. compiler discarded func body"
+	@echo
+	@grep -A 1 "popcnt_test.go:6)" popcnt.txt
+
+compiler-optimisation-defense:
+#	go build -gcflags="-S -m=2 -d=ssa/prove/debug=on" ./examples/popcnt 2>popcnt.txt
+	go test -run=^$$ -gcflags="-S -m=2 -d=ssa/prove/debug=on" -bench=PopcntNoInline ./examples/popcnt 2>popcnt.txt
+#	grep -v PCDATA popcnt.txt | grep -v FUNCDATA | grep -C 3 "inlining call to popcnt"
+	@echo
+	@echo "1. compiler inlined popcnt function body"
+	@echo "19 assembly instructions"
+	@echo
+	grep -A 20 "popcnt_test.go:14)" popcnt.txt

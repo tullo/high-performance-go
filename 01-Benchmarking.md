@@ -612,6 +612,8 @@ func BenchmarkFib20(b *testing.B) {
 }
 ```
 
+> Because it [contains a complex thing](https://github.com/golang/go/wiki/CompilerOptimizations#function-inlining)
+
 ## 1.7 Benchmark mistakes
 
 The for loop is crucial to the operation of the benchmark.
