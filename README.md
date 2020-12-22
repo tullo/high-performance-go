@@ -1,4 +1,8 @@
-# Usage
+# High Performance Go
+
+Notes taken while running through the workshop slides.
+
+## Credit
 
 You can view current version this presentation [here](https://bit.ly/dotgo2019)
 
