@@ -139,21 +139,20 @@ b.N increases in the approximate sequence, growing by roughly **20%** for each i
 
 The benchmark framework tries to be smart and if it sees small values of b.N are completing relatively quickly, it will increase the iteration count faster.
 
-Looking at the example above, BenchmarkFib20-8 found that around `54,000 iterations of the loop` took just over a second.
+Looking at the example above, BenchmarkFib20-8 found that around `32'812 iterations of the loop` took just over a second.
 
-From there the benchmark framework computed that the average time per operation was 21807ns.
+From there the benchmark framework computed that the average time per operation was 36629ns.
 
-> The `-12` suffix relates to the value of `GOMAXPROCS` that was used to run this test. This number, like GOMAXPROCS, **defaults to the number of CPUs visible to the Go process on startup**. 
+> The `-12` suffix relates to the value of [GOMAXPROCS](https://golang.org/pkg/runtime/) that was used to run this test. This number **defaults to the number of OS-threads visible to the Go process on startup**. 
 >
 > You can change this value with the -cpu flag which takes a list of values to run the benchmark with.
 > ```sh
-> go test -bench=Fib20 -cpu=1,2,4 ./examples/fib/
->
-> BenchmarkFib20     	   54032	     21740 ns/op
-> BenchmarkFib20-2   	   55028	     21774 ns/op
-> BenchmarkFib20-4   	   54309	     21760 ns/op
+> go test -bench=Fib20 -cpu=1,2,4 ./examples/fib
+> BenchmarkFib20     	   33140	     35639 ns/op
+> BenchmarkFib20-2   	   33775	     35561 ns/op
+> BenchmarkFib20-4   	   32001	     35590 ns/op
 > ```
-> This shows running the benchmark with 1, 2, and 4 cores.
+> This shows running the benchmark with 1, 2, and 4 OS-threads.
 > 
 > In this case the flag has little effect on the outcome because this benchmark is entirely sequential.
 

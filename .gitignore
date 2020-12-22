@@ -1,0 +1,9 @@
+*.swp
+*.swo
+vendor/
+output/
+.DS_Store
+*.txt
+*.out
+*.test
+*.golden
