@@ -177,9 +177,9 @@ To increase the number of iterations, the benchmark time can be increased with t
 ```sh
 go test -bench=Fib20 -benchtime=10s ./examples/fib/
 
-BenchmarkFib20-12    	  537961	     21762 ns/op
+BenchmarkFib20-12    	  330016	     35252 ns/op
 PASS
-ok  	high-performance-go-workshop/examples/fib	11.935s
+ok  	examples/fib	11.935s
 ```
 
 It ran the same benchmark until it reached a value of b.N that took longer than 10 seconds to return.
@@ -195,42 +195,41 @@ For times measured in `10 or single digit nanoseconds per operation` the relativ
 > To address this **run benchmarks multiple times** with the `-count` flag:
 
 ```go
-go test -bench=Fib20 -count=10 ./examples/fib/ | tee old.txt
+go test -run=^$ -bench=Fib1 -count=10 ./examples/fib
 
 goos: linux
 goarch: amd64
-pkg: high-performance-go-workshop/examples/fib
-BenchmarkFib20-12    	   54099	     21747 ns/op
-BenchmarkFib20-12    	   54708	     21722 ns/op
-BenchmarkFib20-12    	   54363	     21766 ns/op
-BenchmarkFib20-12    	   55201	     22077 ns/op
-BenchmarkFib20-12    	   54979	     22060 ns/op
-BenchmarkFib20-12    	   54403	     22030 ns/op
-BenchmarkFib20-12    	   54970	     21718 ns/op
-BenchmarkFib20-12    	   55070	     21757 ns/op
-BenchmarkFib20-12    	   54964	     21750 ns/op
-BenchmarkFib20-12    	   54944	     21762 ns/op
+BenchmarkFib1-12    	774237474	         1.51 ns/op
+BenchmarkFib1-12    	788348062	         1.51 ns/op
+BenchmarkFib1-12    	787899610	         1.51 ns/op
+BenchmarkFib1-12    	786285502	         1.52 ns/op
+BenchmarkFib1-12    	792306502	         1.51 ns/op
+BenchmarkFib1-12    	789509175	         1.51 ns/op
+BenchmarkFib1-12    	779690390	         1.51 ns/op
+BenchmarkFib1-12    	783065533	         1.51 ns/op
+BenchmarkFib1-12    	773222475	         1.51 ns/op
+BenchmarkFib1-12    	781180959	         1.52 ns/op
 PASS
-ok  	high-performance-go-workshop/examples/fib	14.186s
+ok  	examples/fib	13.420s
 ```
-A benchmark of Fib(1) takes around `2 nano seconds` with a variance of `+/- 15%`.
+A benchmark of Fib(1) takes around `1.5 nano seconds` with a variance of `+/- 15%`.
 
-    b.N = 54099    (loop iterations per second for the whole for-loop)
-    op = 21747 ns  (time used to complete the for-loop: i=1-54099)
-    fn = Fib(1)    (1st invocation)
-    1st fn call time: 54099/21747 ==> 2,487 ns
-
+    b.N = 774237474 (number of for-loop iterations per second)
+    op = 1.5 ns     (time used to complete the fn-call)
+    fn = Fib(1)     (1st invocation)
 
 In Go 1.12 the -benchtime flag now takes a **number of iterations**, eg. `-benchtime=20x` which will **run your code exactly benchtime times**.
 
 > Try running the fib bench above with a -benchtime of 10x, 20x, 50x, 100x, and 300x. What do you see?
 
 ```sh
-BenchmarkFib20-12    	      10	     22347 ns/op    go test -bench=Fib20 -benchtime=10x  ./examples/fib/
-BenchmarkFib20-12    	      20	     22729 ns/op    go test -bench=Fib20 -benchtime=20x  ./examples/fib/
-BenchmarkFib20-12    	      50	     22273 ns/op    go test -bench=Fib20 -benchtime=50x  ./examples/fib/
-BenchmarkFib20-12    	     100	     22468 ns/op    go test -bench=Fib20 -benchtime=100x ./examples/fib/
-BenchmarkFib20-12    	     300	     22603 ns/op    go test -bench=Fib20 -benchtime=300x ./examples/fib/
+make fib-bench-fib1-iterations
+
+BenchmarkFib1-12    	      10	        27.6  ns/op
+BenchmarkFib1-12    	      20	         7.40 ns/op
+BenchmarkFib1-12    	      50	         6.62 ns/op
+BenchmarkFib1-12    	     100	         3.93 ns/op
+BenchmarkFib1-12    	     300	         2.43 ns/op
 ```
 
 > If you find that the defaults that go test applies need to be tweaked for a particular package, 
