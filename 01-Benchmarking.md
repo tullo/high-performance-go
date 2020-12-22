@@ -504,7 +504,7 @@ Even assuming that the CPU may have a few instructions in flight per clock tick,
 
 What happened?
 
-To understand what happened, we have to look at the function under benchmake, popcnt. popcnt is a `leaf function` — it does not call any other functions — so the **compiler can inline** it.
+To understand what happened, we have to look at the function under test, popcnt. popcnt is a `leaf function` — it does not call any other functions — so the **compiler can inline** it.
 
 Because the function is inlined, the compiler now can see it has **no side effects**:
 
@@ -532,6 +532,15 @@ Use gcflags="-l -S" to disable inlining, how does that affect the assembly outpu
 ```sh
 go test -gcflags=-S      # -S assembly output
 go test -gcflags="-l -S" # -l disable inlining
+
+# inlining enabled ==> compiler removed line 19 
+"".BenchmarkPopcntInline STEXT nosplit size=22 args=0x8 locals=0x0
+	0x0015 00021 (examples/popcnt/popcnt_test.go:18)	RET
+
+# inlining disabled ==> line 19: CALL	"".popcnt(SB)
+"".BenchmarkPopcntInline STEXT size=90 args=0x8 locals=0x20
+	0x002b 00043 (examples/popcnt/popcnt_test.go:19)	CALL	"".popcnt(SB)
+	0x0052 00082 (examples/popcnt/popcnt_test.go:18)	RET
 ```
 
 >**Optimisation is a good thing**

@@ -59,3 +59,8 @@ benchmarks-report-allocs:	# reports allocs for benchmarks using ==> b.ReportAllo
 
 benchmarks-report-benchmem:	# reports allocs for ==> ALL benchmarks
 	go test -run=^$$ -bench=. -benchmem bufio
+
+compiler-optimisation-inline:	# compiler inlines leaf function
+	go test -run=^$$ -gcflags=-S -bench=PopcntInline ./examples/popcnt
+	# -gcflags=-S      # -S assembly output
+	# -gcflags="-l -S" # -l disable inlining
