@@ -53,3 +53,9 @@ fib-bench-fib20-benchstat-comp3: # run benchmarks 10x and compare with benchstat
 	$$(go env GOPATH)/bin/benchstat fib1.txt fib3.txt
 	$$(go env GOPATH)/bin/benchstat fib2.txt fib3.txt
 	$$(go env GOPATH)/bin/benchstat fib1.txt fib2.txt fib3.txt
+
+benchmarks-report-allocs:	# reports allocs for benchmarks using ==> b.ReportAllocs()
+	go test -run=^$$ -bench=. bufio
+
+benchmarks-report-benchmem:	# reports allocs for ==> ALL benchmarks
+	go test -run=^$$ -bench=. -benchmem bufio
