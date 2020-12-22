@@ -10,7 +10,9 @@ func BenchmarkFib1(b *testing.B) {
 
 func BenchmarkFib20(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Fib(20) // 35318ns (op) to complete recursive calls and return
+		// Fib(20)  // 35318ns (op) to complete recursive calls and return
+		// Fib2(20) // 21978ns
+		Fib3(20) // 9.86ns
 	}
 }
 

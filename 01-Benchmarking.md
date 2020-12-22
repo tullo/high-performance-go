@@ -283,10 +283,8 @@ this lets you rerun benchmark previous iterations.
 > 
 > ​I often rename this binary from .test to .golden
 > ```sh
-> go test -c
+> go test -c ./examples/fib/
 > mv fib.test fib.golden
-> ls -lh
-> 3,1M fib.golden*
 > ```
 
 The previous Fib fuction had hard coded values for the 0th and 1st numbers in the fibonaci series. After that; the code calls itself recursively.
@@ -296,7 +294,7 @@ The previous Fib fuction had hard coded values for the 0th and 1st numbers in th
 As simple fix to this would be to hard code another number from the fibonacci series, reducing the depth of each recusive call by one.
 
 ```go
-func Fib(n int) int {
+func Fib2(n int) int {
 	switch n {
 	case 0:
 		return 0
@@ -305,7 +303,7 @@ func Fib(n int) int {
 	case 2:
 		return 1
 	default:
-		return Fib(n-1) + Fib(n-2)
+		return Fib2(n-1) + Fib2(n-2)
 	}
 }
 ```
@@ -320,7 +318,33 @@ go test -c ./examples/fib
 
 $(go env GOPATH)/bin/benchstat old.txt new.txt
 name      old time/op  new time/op  delta
-Fib20-12  35.2µs ± 1%  21.7µs ± 0%  -38.36%  (p=0.000 n=10+8)
+Fib20-12  35.3µs ± 0%  21.7µs ± 0%  -38.39%  (p=0.000 n=8+9)
+```
+
+Another version without recursion:
+
+```go
+func Fib3(n int) int {
+	a, b := 0, 1
+	for i := 0; i < n; i++ {
+		a, b = b, a+b
+	}
+	return a
+}
+```
+
+To compare all three versions
+
+```sh
+go test -c ./examples/fib
+
+./fib.golden -test.bench=Fib20 -test.count=10 > fib1.txt
+./fib.fib2 -test.bench=Fib20 -test.count=10 > fib2.txt
+./fib.test -test.bench=Fib20 -test.count=10 > fib3.txt
+
+$(go env GOPATH)/bin/benchstat fib1.txt fib2.txt fib3.txt
+name \ time/op  fib1.txt     fib2.txt     fib3.txt
+Fib20-12        35.6µs ± 1%  21.7µs ± 0%  0.0µs ± 3%
 ```
 
 There are two things to check when comparing benchmarks:
