@@ -367,6 +367,13 @@ There are two things to check when comparing benchmarks:
 - [An example of questionable p-values](https://go-review.googlesource.com/c/go/+/171736)
 - Further reading: [P-value](https://en.wikipedia.org/wiki/P-value) (wikipedia).
 
+```sh
+name      old time/op  new time/op  delta
+Fib20-12  35.2µs ± 0%  21.7µs ± 0%  -38.33%  (p=0.000 n=8+10)	| fib1.txt => fib2.txt
+Fib20-12  35.2µs ± 0%   0.0µs ± 3%  -99.97%  (p=0.000 n=8+8)	| fib1.txt => fib3.txt
+Fib20-12  21.7µs ± 0%   0.0µs ± 3%  -99.96%  (p=0.000 n=10+8)	| fib2.txt => fib3.txt
+```
+
 ## 1.4 Avoiding benchmarking start up costs
 
 Sometimes your benchmark has a once per run setup cost.

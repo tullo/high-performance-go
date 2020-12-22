@@ -49,4 +49,7 @@ fib-bench-fib20-benchstat-comp3: # run benchmarks 10x and compare with benchstat
 	./fib.golden -test.bench=Fib20 -test.count=10 > fib1.txt
 	./fib.fib2 -test.bench=Fib20 -test.count=10 > fib2.txt
 	./fib.test -test.bench=Fib20 -test.count=10 > fib3.txt
+	$$(go env GOPATH)/bin/benchstat fib1.txt fib2.txt
+	$$(go env GOPATH)/bin/benchstat fib1.txt fib3.txt
+	$$(go env GOPATH)/bin/benchstat fib2.txt fib3.txt
 	$$(go env GOPATH)/bin/benchstat fib1.txt fib2.txt fib3.txt
