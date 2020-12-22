@@ -40,14 +40,18 @@ Before you benchmark, you must have a stable environment to get repeatable resul
 - Watch out for power saving and thermal scaling. These are almost unavoidable on modern laptops (hot labs (;-] ).
 - Avoid virtual machines and shared cloud hosting; they can be too noisy for consistent measurements.
 
-If you can afford it,
+If you can afford it:
 - buy dedicated performance test hardware. 
-- Rack it, disable all the power management and thermal scaling,
+- rack it, disable all the power management and thermal scaling,
 - and never update the software on those machines.
 
 The last point is poor advice from a system adminstration point of view, but if a software update changes the way the kernel or library performs — ​think the Spectre patches — ​this will invalidate any previous benchmarking results.
 
-For the rest of us, have a before and after sample and run them multiple times to get consistent results.
+For the rest of us:
+- have a before and after sample
+- and run them multiple times
+
+to get consistent results.
 
 ## 1.2 Using the testing package for benchmarking
 
@@ -68,14 +72,16 @@ func Fib3(n int) int {
 		return Fib(n-1) + Fib(n-2)
 	}
 }
+
+// https://en.wikipedia.org/wiki/Fibonacci_number
 ```
 
 The we can use the testing package to write a benchmark for the function using this form.
 
 ```go
-func BenchmarkFib20(b *testing.B) {
+func BenchmarkFib1(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Fib(20) // run the Fib function b.N times
+		Fib(1) // run the Fib function b.N times
 	}
 }
 
@@ -105,13 +111,14 @@ To explicitly run benchmarks in a package use the -bench flag.
 Here is an example:
 
 ```sh
+make fib-bench-all
 go test -bench=. ./examples/fib/
-goos: darwin
+
+goos: linux
 goarch: amd64
-pkg: high-performance-go-workshop/examples/fib
-BenchmarkFib20-12           54110             21807 ns/op
+BenchmarkFib1-12     	746697031	         1.58 ns/op
+BenchmarkFib20-12    	    32812	     36629    ns/op
 PASS
-ok      high-performance-go-workshop/examples/fib       1.407s
 ```
 
 > go test will also run all the tests in a package before matching benchmarks, 

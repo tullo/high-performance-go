@@ -4,7 +4,13 @@ import "testing"
 
 func BenchmarkFib1(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Fib(1) // 1.52 ns/op
+		Fib(1) // 1.52ns (op) to complete and return
+	}
+}
+
+func BenchmarkFib20(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Fib(20) // 35318ns (op) to complete recursive calls and return
 	}
 }
 
