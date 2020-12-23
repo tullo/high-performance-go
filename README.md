@@ -2,11 +2,13 @@
 
 Notes taken while running through the workshop slides.
 
+1. [Benchmarking](01-Benchmarking.md)
+
 ## Credit
 
 You can view current version this presentation [here](https://bit.ly/dotgo2019)
 
-# License and Materials
+## License and Materials
 
 This presentation is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/) licence.
 

@@ -13,7 +13,7 @@ High Performance Go Workshop
     1.7. Benchmark mistakes
     1.8. Benchmarking math/rand
     1.9. Profiling benchmarks
-    1.10. Discussion
+    1.10 Inlining optimisations in Go
 
 2. Performance measurement and profiling
 3. Compiler optimisations
@@ -60,13 +60,11 @@ The testing package has built in support for writing benchmarks.
 If we have a simple function like this:
 
 ```go
-func Fib3(n int) int {
+func Fib(n int) int {
 	switch n {
 	case 0:
 		return 0
 	case 1:
-		return 1
-	case 2:
 		return 1
 	default:
 		return Fib(n-1) + Fib(n-2)
@@ -76,7 +74,7 @@ func Fib3(n int) int {
 // https://en.wikipedia.org/wiki/Fibonacci_number
 ```
 
-The we can use the testing package to write a benchmark for the function using this form.
+Then we can use the testing package to write a benchmark for the function using this form.
 
 ```go
 func BenchmarkFib1(b *testing.B) {
@@ -94,9 +92,11 @@ func BenchmarkFib28(b *testing.B) {
 
 > The benchmark function lives alongside your tests in a _test.go file. 
 
-Benchmarks are similar to tests, the only real difference is they take a *testing.B rather than a *testing.T.
+Benchmarks are similar to tests, the only real difference is that they take a *testing.B rather than a *testing.T.
 
-Both of these types implement the testing.TB interface which provides crowd favorites like Errorf(), Fatalf(), and FailNow().
+Both of these types implement the `testing.TB interface` which provides crowd favorites like Errorf(), Fatalf(), and FailNow().
+
+----
 
 ### 1.2.1. Running a package’s benchmarks
 
@@ -111,7 +111,6 @@ To explicitly run benchmarks in a package use the -bench flag.
 Here is an example:
 
 ```sh
-make fib-bench-all
 go test -bench=. ./examples/fib/
 
 goos: linux
@@ -122,24 +121,26 @@ PASS
 ```
 
 > go test will also run all the tests in a package before matching benchmarks, 
-> 
-> so if you have a lot of tests in a package, or they take a long time to run, 
-> 
-> you can exclude them by providing go test’s `-run flag with a regex that matches nothing; ie.
+> - so if you have a lot of tests in a package,
+> - or they take a long time to run,
+> - you can exclude them
+> - by providing go test’s `-run flag with a regex` that matches nothing; ie.
 >
 > `go test -run=^$`
 
+----
+
 ### 1.2.2. How benchmarks work
 
-Each benchmark function is called with different value for b.N, this is the number of iterations the benchmark should run for.
+Each benchmark function is called with a different value for b.N, this is the number of iterations the benchmark should run for.
 
-b.N starts at 1, if the benchmark function completes in under 1 second — ​the default — ​then b.N is increased and the benchmark function run again.
+`b.N` starts at **1**, if the benchmark function completes in under **1 second** — ​the default — ​then b.N is increased and the benchmark function run again.
 
-b.N increases in the approximate sequence, growing by roughly **20%** for each iteration.
+`b.N` increases in the approximate sequence, growing by roughly **20%** for each iteration.
 
 The benchmark framework tries to be smart and if it sees small values of b.N are completing relatively quickly, it will increase the iteration count faster.
 
-Looking at the example above, BenchmarkFib20-8 found that around `32'812 iterations of the loop` took just over a second.
+Looking at the example above, BenchmarkFib20-8 found that around `32'812 iterations of the for-loop` took just over a second.
 
 From there the benchmark framework computed that the average time per operation was 36629ns.
 
@@ -156,9 +157,13 @@ From there the benchmark framework computed that the average time per operation 
 > 
 > In this case the flag has little effect on the outcome because this benchmark is entirely sequential.
 
+----
+
 ### 1.2.3. Go 1.13 benchmarking changes
 
 In Go 1.13 the rounding has been removed, which improves the accuracy of benchmarking operations in the low ns/op range, and reduces the run time of benchmarks overall as the benchmark framework arrives at the correct iteration count faster.
+
+----
 
 ### 1.2.4. Improving benchmark accuracy
 
@@ -166,13 +171,13 @@ The fib function is a slightly contrived example—​unless you are writing a T
 
 But, the benchmark does provide a faithful example of a valid benchmark.
 
-Specifically you want your benchmark to run for several tens of thousand iterations so you get a good average per operation. 
+Specifically you want your benchmark to `run for several tens of thousand iterations` so you get a good average per operation. 
 
 > If your benchmark runs for only 100’s or 10’s of iterations, the average of those runs may have a high standard deviation.
 
 > If your benchmark runs for millions or billions of iterations, the average may be very accurate, but subject to the vaguaries of code layout and alignment.
 
-To increase the number of iterations, the benchmark time can be increased with the -benchtime flag. For example:
+To increase the number of iterations, the benchmark time can be increased with the `-benchtime` flag. For example:
 
 ```sh
 go test -bench=Fib20 -benchtime=10s ./examples/fib/
@@ -182,7 +187,7 @@ PASS
 ok  	examples/fib	11.935s
 ```
 
-It ran the same benchmark until it reached a value of b.N that took longer than 10 seconds to return.
+It ran the same benchmark until it reached a value of `b.N` that took **longer than 10 seconds to return**.
 
 As we’re running for 10x longer, the total number of iterations is 10x larger.
 
@@ -218,7 +223,7 @@ A benchmark of Fib(1) takes around `1.5 nano seconds` with a variance of `+/- 15
     op = 1.5 ns     (time used to complete the fn-call)
     fn = Fib(1)     (1st invocation)
 
-In Go 1.12 the -benchtime flag now takes a **number of iterations**, eg. `-benchtime=20x` which will **run your code exactly benchtime times**.
+In Go 1.12 the -benchtime flag now takes a **number of iterations**, eg. `-benchtime=20x` which will **run your code `exactly` benchtime times**.
 
 > Try running the fib bench above with a -benchtime of 10x, 20x, 50x, 100x, and 300x. What do you see?
 
@@ -236,9 +241,13 @@ BenchmarkFib1-12    	     300	         2.43 ns/op
 > 
 > I suggest codifying those settings in a Makefile so everyone who wants to run your benchmarks can do so with the same settings. 
 
+----
+
 ## 1.3 Comparing benchmarks with benchstat
 
-I suggest running benchmarks more than once to get more data to average. This is good advice for any benchmark because of the effects of power management, background processes, and thermal management that I mentioned at the start of the chapter.
+I suggest running benchmarks more than once to get more data to average.
+
+This is good advice for any benchmark because of the effects of power management, background processes, and thermal management that I mentioned at the start of the chapter.
 
 I’m going to introduce a tool by Russ Cox called [benchstat](https://godoc.org/golang.org/x/perf/cmd/benchstat).
 
@@ -268,6 +277,8 @@ Fib20-12  35.4µs ± 1%
 ```
 
 `benchstat` tells us the `mean` is 35.4 microseconds with a +/- 1% `variation` across the samples. This is because while the benchmark was running I didn’t touch the machine.
+
+----
 
 ### 1.3.1. Improve `Fib`
 
@@ -300,7 +311,7 @@ func Fib2(n int) int {
 		return 0
 	case 1:
 		return 1
-	case 2:
+	case 2: // hard code another number
 		return 1
 	default:
 		return Fib2(n-1) + Fib2(n-2)
@@ -339,10 +350,11 @@ To compare all three versions
 go test -c ./examples/fib
 
 ./fib.golden -test.bench=Fib20 -test.count=10 > fib1.txt
-./fib.fib2 -test.bench=Fib20 -test.count=10 > fib2.txt
-./fib.test -test.bench=Fib20 -test.count=10 > fib3.txt
+./fib.fib2   -test.bench=Fib20 -test.count=10 > fib2.txt
+./fib.test   -test.bench=Fib20 -test.count=10 > fib3.txt
 
 $(go env GOPATH)/bin/benchstat fib1.txt fib2.txt fib3.txt
+
 name \ time/op  fib1.txt     fib2.txt     fib3.txt
 Fib20-12        35.6µs ± 1%  21.7µs ± 0%  0.0µs ± 3%
 ```
@@ -350,15 +362,17 @@ Fib20-12        35.6µs ± 1%  21.7µs ± 0%  0.0µs ± 3%
 There are two things to check when comparing benchmarks:
 
 - The variance ± in the old and new times. 
-  - 1-2% is good
-  - 3-5% is ok
-  - greater than 5% and some of your samples will be considered unreliable.
+  - `1-2%` is good
+  - `3-5%` is ok
+  - `>5%` and **some of your samples** will be **considered unreliable**.
   
-  Be careful when comparing benchmarks where one side has a high variance, you may not be seeing an improvement.
+  Be careful when comparing benchmarks where **one side has a high variance**, you may not be seeing an improvement.
 - Missing samples.
   - `benchstat` will report how many of the old and new samples it considered to be valid, 
   - sometimes you may find only, say, 9 reported, even though you did -count=10.
-  - A 10% or lower rejection rate is ok, higher than 10% may indicate your setup is unstable and you may be comparing too few samples.
+  - A `10% or lower rejection rate is ok`, higher than 10% may indicate your **setup is unstable** and you may be **comparing too few samples**.
+
+----
 
 ### 1.3.2. Beware the p-value
 
@@ -373,6 +387,8 @@ Fib20-12  35.2µs ± 0%  21.7µs ± 0%  -38.33%  (p=0.000 n=8+10)	| fib1.txt => 
 Fib20-12  35.2µs ± 0%   0.0µs ± 3%  -99.97%  (p=0.000 n=8+8)	| fib1.txt => fib3.txt
 Fib20-12  21.7µs ± 0%   0.0µs ± 3%  -99.96%  (p=0.000 n=10+8)	| fib2.txt => fib3.txt
 ```
+
+----
 
 ## 1.4 Avoiding benchmarking start up costs
 
@@ -401,6 +417,8 @@ func BenchmarkComplicated(b *testing.B) {
         }
 }
 ```
+
+----
 
 ## 1.5 Benchmarking allocations
 
@@ -490,7 +508,9 @@ func BenchmarkPopcntDiscarded(b *testing.B) {
 }
 ```
 
-How fast do you think this function will benchmark? Let’s find out.
+How fast do you think this function will benchmark?
+
+Let’s find out:
 
 ```sh
 go test -run=^$ -bench=PopcntDiscarded ./examples/popcnt
@@ -498,23 +518,25 @@ go test -run=^$ -bench=PopcntDiscarded ./examples/popcnt
 BenchmarkPopcntDiscarded-12    	1000000000	         0.256 ns/op
 ```
 
-0.256 of a nano second - that’s basically one clock cycle. 
+`0.256 of a nano second` - that’s basically **one clock cycle**. 
 
 Even assuming that the CPU may have a few instructions in flight per clock tick, this number seems unreasonably low.
 
 What happened?
 
-To understand what happened, we have to look at the function under test, popcnt. popcnt is a `leaf function` — it does not call any other functions — so the **compiler can inline** it.
+To understand what happened, we have to look at the function under test, popcnt. 
+
+**popcnt** is a **`leaf function`** — it does not call any other functions — so the **compiler can inline** it.
 
 Because the function is inlined, the compiler now can see it has **no side effects**:
 
-- popcnt does not affect the state of any global variable.
-- the call is eliminated.
+- popcnt does not affect the **state** of any **global** variable.
+- the call is **eliminated**.
 
 This is what the compiler sees:
 
 ```go
-func BenchmarkPopcnt(b *testing.B) {
+func BenchmarkPopcntDiscarded(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// optimised away
 	}
@@ -522,6 +544,8 @@ func BenchmarkPopcnt(b *testing.B) {
 ```
 
 On all versions of the Go compiler that i’ve tested, the loop is still generated. But Intel CPUs are really good at optimising loops, especially empty ones.
+
+----
 
 ### 1.6.1. Exercise, look at the assembly
 
@@ -562,10 +586,10 @@ go test -gcflags="-l -S" # -l disable inlining
 
 Disabling inlining to make the benchmark work is unrealistic; we want to build our code with optimisations on.
 
-To fix this benchmark we must ensure that the **compiler cannot prove** that the body of BenchmarkPopcnt does not cause global state to change.
+To fix this benchmark we must ensure that the `compiler cannot prove` that the **body** of BenchmarkPopcntNotDiscarded **does not cause global state to change**.
 
 ```go
-// This is the recommended way to ensure the compiler cannot optimise away the body of the loop.
+// Result asignment to a package public variable is the recommended way to ensure the compiler cannot optimise away the body of the loop.
 var Result uint64
 
 func BenchmarkPopcntNotDiscarded(b *testing.B) {
@@ -585,7 +609,7 @@ This is the recommended way to ensure the compiler cannot optimise away body of 
 
 Because `Result is public` the **compiler cannot prove** that another package importing this one
 will not be able to see the value of Result changing over time,
-hence it cannot optimise away any of the operations leading to its assignment.
+hence it **cannot optimise away any of the operations leading to its assignment**.
 
 ```sh
 go test -run=^$ -bench=PopcntNotDiscarded ./examples/popcnt
@@ -594,8 +618,13 @@ BenchmarkPopcntNotDiscarded-12    	773953248	         1.51 ns/op
 ```
 
 - What happens if we assign to `Result` directly?
+  - `popcnt_test.go:18)	MOVQ	DX, "".Result(SB)`
 - Does this affect the benchmark time?
+  - `BenchmarkPopcntNotDiscarded-12 | 774996604 | 1.51 ns/op`
 - What about if we assign the result of popcnt to `_`?
+  - Optimized away
+
+----
 
 Why can’t the compiler optimise:
 
@@ -621,9 +650,11 @@ func BenchmarkFib20(b *testing.B) {
 
 > Because it [contains a complex thing](https://github.com/golang/go/wiki/CompilerOptimizations#function-inlining)
 
+----
+
 ## 1.7 Benchmark mistakes
 
-The for loop is crucial to the operation of the benchmark.
+The `for loop` is crucial to the operation of the benchmark.
 
 Here are two incorrect benchmarks, can you explain what is wrong with them?
 
@@ -632,26 +663,29 @@ func BenchmarkFibWrong(b *testing.B) {
 	Fib(b.N) // b.N 
 }
 
-// The run time of the benchmark will increase as b.N grows, never converging on a stable value.
+// The run time of the benchmark will increase as b.N grows, 
+// never converging on a stable value.
 
 func BenchmarkFibWrong2(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		Fib(n) // n 
 	}
 }
+
 // Similarly affected and never completes.
 ```
 
 Run these benchmarks, what do you see?
 
+----
 
 ## 1.8 Benchmarking `math/rand`
 
-Thanks to Spectre and Meltdown we all know that computers are very good a caching predictable operations.
+Thanks to Spectre and Meltdown we all know that **computers are very good a caching predictable operations**.
 
 Perhaps our Popcnt benchmark, even the correct version, is returning us a cached value — ​data that varies unpredictably might be slower than we’re expecting.
 
-Let’s test this.
+Let’s test this:
 
 ```go
 var Result uint64
@@ -693,25 +727,32 @@ BenchmarkPopcntRand-12            	79298420	        15.1   ns/op # pseudo-random
 BenchmarkPopcntRandSeed-12        	  150628	      7874     ns/op # pseudo-random value, nanosec seed
 ```
 
+----
+
 ## 1.9 Profiling benchmarks
 
 The testing package has **built in support** for generating CPU, memory, and block profiles.
 
-- -cpuprofile=$FILE writes a CPU profile to $FILE.
-- -memprofile=$FILE, writes a memory profile to $FILE
-- -memprofilerate=N adjusts the profile rate to 1/N.
-- -blockprofile=$FILE, writes a block profile to $FILE.
+- `-cpuprofile`=$FILE writes a CPU profile to $FILE.
+- `-memprofile`=$FILE, writes a memory profile to $FILE
+- `-memprofilerate`=N adjusts the profile rate to 1/N.
+- `-blockprofile`=$FILE, writes a block profile to $FILE.
 
-Using any of these flags also preserves the binary.
+Using any of these flags also **preserves the binary**.
 
 ```sh
-go test -run=^$ -bench=. -cpuprofile=cpu.profile bytes # running bytes package benchmarks
+# take cpu-samples while running the bytes package benchmarks
+go test -run=^$ -bench=. -cpuprofile=cpu.profile bytes
 go tool pprof cpu.profile
 
+# take memory-samples while running the bytes package benchmarks
 go test -run=^$ -bench=. -memprofile=mem.profile bytes
-go test -run=^$ -bench=. -memprofile=mem.profile -memprofilerate=5 bytes # N=1/5
+
+# adjust the memory sampling rate to N=1/5 => N=0.2
+go test -run=^$ -bench=. -memprofile=mem.profile -memprofilerate=5 bytes
 go tool pprof mem.profile
 
+# take blocking-samples while running the bytes package benchmarks
 go test -run=^$ -bench=. -blockprofile=bloc.profile bytes
 go tool pprof bloc.profile
 ```
