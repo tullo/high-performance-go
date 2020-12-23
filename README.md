@@ -3,6 +3,7 @@
 Notes taken while running through the workshop slides.
 
 1. [Benchmarking](01-Benchmarking.md)
+1. [Performance measurement and profiling](02-Performance-measurement-and-profiling.md)
 
 ## Credit
 
