@@ -625,11 +625,14 @@ func BenchmarkFibWrong(b *testing.B) {
 	Fib(b.N) // b.N 
 }
 
+// The run time of the benchmark will increase as b.N grows, never converging on a stable value.
+
 func BenchmarkFibWrong2(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		Fib(n) // n 
 	}
 }
+// Similarly affected and never completes.
 ```
 
 Run these benchmarks, what do you see?
@@ -705,3 +708,13 @@ go tool pprof mem.profile
 go test -run=^$ -bench=. -blockprofile=bloc.profile bytes
 go tool pprof bloc.profile
 ```
+
+## 1.10 Inlining optimisations in Go
+
+This is a post about [how the Go compiler implements inlining](https://dave.cheney.net/2020/04/25/inlining-optimisations-in-go) and how this optimisation affects your Go code. (2020/04/25)
+
+- The relative costs of calling a free function vs invoking a method, assuming that method is not called through an interface, are the same.
+- Go 1.14+ allowes the runtime to pause an goroutine without waiting for it to make a function call.
+- I’m using the `//go:noinline` pragma to prevent the compiler from inlining max. This is because I want to isolate the effects of inlining on max rather than disabling optimisations globally with -gcflags='-l -N'.
+- Compare the output of go test -bench=. `-gcflags=-S` **with and without** the `//go:noinline` annotation.
+- Check with the `-gcflags=-d=ssa/prove/debug=on` flag.
