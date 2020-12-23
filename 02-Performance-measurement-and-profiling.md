@@ -418,6 +418,21 @@ What are some ways we can avoid this?
 - Try them and 
 - use CPU and memory profiling to prove it.
 
+```go
+var buf [1]byte
+for {
+     r, err := readbyte(b, &buf)
+}
+```
+
+```sh
+time go run main.go moby.txt
+
+real	0m0,170s
+user	0m0,179s
+sys	0m0,121s
+```
+
 ----
 
 ## 2.5.6. Alloc objects vs. inuse objects
