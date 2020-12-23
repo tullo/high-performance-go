@@ -87,9 +87,10 @@ benchmarking-with-random-data:
 # ========  ========================================
 
 words:
-	go build -o words1 ./examples/words/main.go
-	go build -o words2 ./examples/words/main2.go
-	go build -o words3 ./examples/words/main3.go
+#	go build -o words1 ./examples/words/main.go
+	go build -o words2 ./examples/words/main.go
+#	go build -o words3 ./examples/words/main3.go
 
-time-words1:
+time-words:
 	@time ./words1 ./examples/words/moby.txt
+	@time ./words2 ./examples/words/moby.txt

@@ -232,7 +232,7 @@ user	0m0,013s
 sys	0m0,005s
 ```
 
-So the numbers aren't the same. wc is about 19% higher because what it considers a word is different to what my simple program does. That’s not important — ​**both programs** take the whole file as input and in a single pass **count the number of transitions from word to non word**.
+So the numbers aren't the same. `wc` is about 19% higher because what it considers a word is different to what my simple program does. That’s not important — ​**both programs** take the whole file as input and in a single pass **count the number of transitions from word to non word**.
 
 Let's investigate why these programs have different run times using `pprof`.
 
@@ -241,54 +241,80 @@ Let's investigate why these programs have different run times using `pprof`.
 ### 2.5.3. Add CPU profiling
 
 ```go
-func readbyte(r io.Reader) (rune, error) {
-	var buf [1]byte
-	_, err := r.Read(buf[:])
-	return rune(buf[0]), err
-}
-
 func main() {
-    defer profile.Start(profile.MemProfile).Stop()
+    defer profile.Start().Stop() // Add CPU profiling
 }
+```
+
+Now when we run the program a cpu.pprof file is created.
+
+```sh
+time ./words2 ./examples/words/moby.txt
+
+2020/12/23 profile: cpu profiling enabled, /tmp/profile125403116/cpu.pprof
+"./examples/words/moby.txt": 181275 words
+2020/12/23 profile: cpu profiling disabled, /tmp/profile125403116/cpu.pprof
+
+real	0m0,611s
+user	0m0,166s
+sys	0m0,271s
 ```
 
 Now we have the profile we can analyse it with go tool pprof
 
 ```sh
-go tool pprof ./cpu.pprof 
-File: words
+go tool pprof /tmp/profile072172593/cpu.pprof
+File: words2
 Type: cpu
-Time: Dec 18, 2020 at 2:06pm (CET)
-Duration: 200.84ms, Total samples = 20ms ( 9.96%)
-Entering interactive mode (type "help" for commands, "o" for options)
-(pprof)
+Duration: 602.05ms, Total samples = 420ms (69.76%)
 (pprof) top
-Showing nodes accounting for 20ms, 100% of 20ms total
+Showing nodes accounting for 410ms, 97.62% of 420ms total
+Showing top 10 nodes out of 24
       flat  flat%   sum%        cum   cum%
-      10ms 50.00% 50.00%       10ms 50.00%  bufio.(*Reader).Read
-      10ms 50.00%   100%       10ms 50.00%  runtime.mallocgc
-         0     0%   100%       20ms   100%  main.main
-         0     0%   100%       20ms   100%  main.readbyte (inline)
-         0     0%   100%       20ms   100%  runtime.main
-         0     0%   100%       10ms 50.00%  runtime.newobject
+     260ms 61.90% 61.90%      320ms 76.19%  syscall.Syscall
+      30ms  7.14% 69.05%       40ms  9.52%  runtime.mallocgc
+      20ms  4.76% 73.81%       20ms  4.76%  internal/poll.(*fdMutex).rwlock
+      20ms  4.76% 78.57%      410ms 97.62%  main.readbyte
+      20ms  4.76% 83.33%       20ms  4.76%  runtime.casgstatus
+      20ms  4.76% 88.10%       30ms  7.14%  runtime.reentersyscall
+      10ms  2.38% 90.48%      350ms 83.33%  internal/poll.(*FD).Read
+      10ms  2.38% 92.86%       10ms  2.38%  runtime.acquirem (inline)
+      10ms  2.38% 95.24%       10ms  2.38%  runtime.exitsyscallfast_reacquired
+      10ms  2.38% 97.62%       10ms  2.38%  runtime.save
+```
 
+The `top` command is one you'll use the most. We can see that 62% of the time this program spends in `syscall.Syscall`, and a small part in `main.readbyte`.
+
+We can also visualise this call the with the `web` command.
+
+This will generate a directed graph from the profile data. Under the hood this uses the dot command from Graphviz.
+
+```sh
 # However, in Go 1.10 Go ships with a version of pprof that natively supports a http sever.
-# It will open a web browser;
+#
+# It will open a web browser:
 #   Graph mode          http://localhost:8080/ui/?si=cpu
 #   Flame graph mode    http://localhost:8080/ui/flamegraph?si=cpu
 #   Top mode            http://localhost:8080/ui/top?si=cpu
-go tool pprof -http=:8080 ./cpu.pprof
+
+go tool pprof -http=:8080 /tmp/profile072172593/cpu.pprof
 ```
 
-On the graph the box that consumes the most CPU time is the largest
+On the graph **the box that consumes the most CPU time is the largest** — we see `syscall.Syscall` at `61.9%` of the total time spent in the program.
 
-— we see sys `call.Syscall` at 99.3% of the total time spent in the program.
+The string of boxes leading to `syscall.Syscall` represent the **immediate callers** — there can be more than one if multiple code paths that converge on the same function.
 
-The size of the arrow represents how much time was spent in children of a box, 
+The **size of the arrow** represents **how much time** was **spent in children of a box**, we see that from `main.readbyte` onwards they **account for near 0 of the 320ms spent** in this arm of the graph.
 
-— we see that from `main.readbyte` onwards they account for near 0 of the 1.41 second spent in this arm of the graph.
+----
 
-Each call to readbyte results in a syscall.Read with a buffer size of 1. So the number of syscalls executed by our program is equal to the size of the input. We can see that in the pprof graph that reading the input dominates everything else.
+### 2.5.4. Improving our version
+
+Each call to `readbyte` results in a `syscall.Read` with a buffer size of **1**.
+
+So the number of syscalls executed by our program is equal to the size of the input.
+
+We can see that in the pprof graph that reading the input dominates everything else.
 
 ```go
 func readbyte(r io.Reader) (rune, error) {
