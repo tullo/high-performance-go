@@ -483,7 +483,7 @@ func popcnt(x uint64) uint64 {
 	return (x * h01) >> 56
 }
 
-func BenchmarkPopcnt(b *testing.B) {
+func BenchmarkPopcntDiscarded(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		popcnt(uint64(i))
 	}
@@ -493,12 +493,12 @@ func BenchmarkPopcnt(b *testing.B) {
 How fast do you think this function will benchmark? Let’s find out.
 
 ```sh
-go test -run=^$ -bench=PopcntInline ./examples/popcnt
+go test -run=^$ -bench=PopcntDiscarded ./examples/popcnt
 ---
-BenchmarkPopcntInline-12       1000000000            0.278 ns/op
+BenchmarkPopcntDiscarded-12    	1000000000	         0.256 ns/op
 ```
 
-0.278 of a nano second - that’s basically one clock cycle. 
+0.256 of a nano second - that’s basically one clock cycle. 
 
 Even assuming that the CPU may have a few instructions in flight per clock tick, this number seems unreasonably low.
 
@@ -533,14 +533,21 @@ Use gcflags="-l -S" to disable inlining, how does that affect the assembly outpu
 go test -gcflags=-S      # -S assembly output
 go test -gcflags="-l -S" # -l disable inlining
 
-# inlining enabled ==> compiler removed line 19 
-"".BenchmarkPopcntInline STEXT nosplit size=22 args=0x8 locals=0x0
-	0x0015 00021 (examples/popcnt/popcnt_test.go:18)	RET
+# inlining enabled ==> compiler removed line (popcnt_test.go:11)
+	0x0000 00000 (examples/popcnt/popcnt_test.go:9)	TEXT	"".BenchmarkPopcntDiscarded(SB), NOSPLIT|ABIInternal, $0-8
+	0x0000 00000 (examples/popcnt/popcnt_test.go:10)	MOVQ	"".b+8(SP), AX
+	0x0005 00005 (examples/popcnt/popcnt_test.go:10)	XORL	CX, CX
+	0x0007 00007 (examples/popcnt/popcnt_test.go:10)	JMP	12
+	0x0009 00009 (examples/popcnt/popcnt_test.go:10)	INCQ	CX
+	0x000c 00012 (examples/popcnt/popcnt_test.go:10)	CMPQ	376(AX), CX
+	0x0013 00019 (examples/popcnt/popcnt_test.go:10)	JGT	9
+	0x0015 00021 (examples/popcnt/popcnt_test.go:10)	RET
 
-# inlining disabled ==> line 19: CALL	"".popcnt(SB)
-"".BenchmarkPopcntInline STEXT size=90 args=0x8 locals=0x20
-	0x002b 00043 (examples/popcnt/popcnt_test.go:19)	CALL	"".popcnt(SB)
-	0x0052 00082 (examples/popcnt/popcnt_test.go:18)	RET
+# inlining disabled ==> line 11: CALL "".popcnt(SB)
+	0x0000 00000 (examples/popcnt/popcnt_test.go:9)	TEXT	"".BenchmarkPopcntDiscarded(SB), ABIInternal, $32-8
+	0x0027 00039 (examples/popcnt/popcnt_test.go:11)	MOVQ	AX, (SP)
+	0x002b 00043 (examples/popcnt/popcnt_test.go:11)	PCDATA	$1, $0
+	0x002b 00043 (examples/popcnt/popcnt_test.go:11)	CALL	"".popcnt(SB)
 ```
 
 >**Optimisation is a good thing**
@@ -561,7 +568,7 @@ To fix this benchmark we must ensure that the **compiler cannot prove** that the
 // This is the recommended way to ensure the compiler cannot optimise away the body of the loop.
 var Result uint64
 
-func BenchmarkPopcntNoInline(b *testing.B) {
+func BenchmarkPopcntNotDiscarded(b *testing.B) {
 	var r uint64
 	for i := 0; i < b.N; i++ {
 		r = popcnt(uint64(i))
@@ -573,7 +580,7 @@ func BenchmarkPopcntNoInline(b *testing.B) {
 This is the recommended way to ensure the compiler cannot optimise away body of the loop.
 
 - First we use the result of calling popcnt by storing it in `r`.
-- Second, because `r` is declared locally inside the scope of `BenchmarkPopcntNoInline` once the benchmark is over, the result of `r` is never visible to another part of the program, 
+- Second, because `r` is declared locally inside the scope of `BenchmarkPopcntNotDiscarded` once the benchmark is over, the result of `r` is never visible to another part of the program, 
 - as the final act we assign the value of `r` to the package public variable `Result`.
 
 Because `Result is public` the **compiler cannot prove** that another package importing this one
@@ -581,9 +588,9 @@ will not be able to see the value of Result changing over time,
 hence it cannot optimise away any of the operations leading to its assignment.
 
 ```sh
-go test -run=^$ -bench=PopcntNoInline ./examples/popcnt
+go test -run=^$ -bench=PopcntNotDiscarded ./examples/popcnt
 ---
-BenchmarkPopcntNoInline-12    	776304234	         1.51 ns/op
+BenchmarkPopcntNotDiscarded-12    	773953248	         1.51 ns/op
 ```
 
 - What happens if we assign to `Result` directly?
@@ -649,7 +656,7 @@ Let’s test this.
 ```go
 var Result uint64
 
-func BenchmarkPopcnt(b *testing.B) {
+func BenchmarkPopcntRand(b *testing.B) {
 	var r uint64
 	for i := 0; i < b.N; i++ {
 		r = popcnt(rand.Uint64())
@@ -659,9 +666,9 @@ func BenchmarkPopcnt(b *testing.B) {
 ```
 
 ```sh
-go test -run=^$ -bench=PopcntRandSeed$ ./examples/popcnt
+go test -run=^$ -bench=PopcntRand$ ./examples/popcnt
 ---
-BenchmarkPopcntRand-12            73995884         15.10  ns/op
+BenchmarkPopcntRand-12    	77631072	        15.1 ns/op
 ```
 
 Is this result reliable? If not, what went wrong?
@@ -670,7 +677,7 @@ Is this result reliable? If not, what went wrong?
 func BenchmarkPopcntRandSeed(b *testing.B) {
 	var r uint64
 	for i := 0; i < b.N; i++ {
-		rand.Seed(time.Now().UnixNano()) // seed
+		rand.Seed(time.Now().UnixNano()) // nanosec seed
 		r = popcnt(rand.Uint64())
 	}
 	Result = r
@@ -680,10 +687,10 @@ func BenchmarkPopcntRandSeed(b *testing.B) {
 ```sh
 go test -run=^$ -bench=. ./examples/popcnt
 ---
-BenchmarkPopcnt-12              1000000000          0.255 ns/op # inlined
-BenchmarkPopcntNoInline-12       780286964          1.51  ns/op
-BenchmarkPopcntRand-12            73995884         15.10  ns/op
-BenchmarkPopcntRandSeed-12          149853       7853.00  ns/op # random seed
+BenchmarkPopcntDiscarded-12       	1000000000	         0.256 ns/op # compiler inlines and discards leaf function
+BenchmarkPopcntNotDiscarded-12    	795239768	         1.51  ns/op
+BenchmarkPopcntRand-12            	79298420	        15.1   ns/op # pseudo-random value, default seed
+BenchmarkPopcntRandSeed-12        	  150628	      7874     ns/op # pseudo-random value, nanosec seed
 ```
 
 ## 1.9 Profiling benchmarks
