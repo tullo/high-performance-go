@@ -94,6 +94,7 @@ words:
 time-words:
 #	@time ./words1 ./examples/words/moby.txt
 #	@time ./words2 ./examples/words/moby.txt
-	@time ./words3 ./examples/words/moby.txt
+#	@time ./words3 ./examples/words/moby.txt
 	time wc -w ./examples/words/moby.txt
+	cd examples/words/; time go run main.go moby.txt
 

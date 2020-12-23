@@ -18,7 +18,8 @@ func readbyte(r io.Reader) (rune, error) {
 }
 
 func main() {
-	defer profile.Start().Stop() // Add CPU profiling
+	// defer profile.Start().Stop() // Add CPU profiling
+	defer profile.Start(profile.MemProfile).Stop() // Add Memory profiling
 
 	f, err := os.Open(os.Args[1])
 	if err != nil {

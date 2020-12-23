@@ -358,29 +358,65 @@ real	0m0,012s
 
 ## 2.5.5. Memory profiling
 
-The new words profile suggests that something is allocating inside the readbyte function. We can use pprof to investigate.
+The new words profile suggests that something is allocating inside the readbyte function.
 
-`defer profile.Start(profile.MemProfile).Stop()`
+We can use `pprof` to investigate.
 
-`go run words.go moby.txt`
+```go
+func main() {
+    defer profile.Start(profile.MemProfile).Stop() // Add Memory profiling
+}
+```
 
-`go tool pprof -http=:8080 /tmp/profile018586125/mem.pprof`
+Then run the program as usual:
+
+```sh
+cd examples/words
+time go run main.go moby.txt # go run is ok here
+2020/12/23 profile: memory profiling enabled (rate 4096), /tmp/profile271003129/mem.pprof
+"moby.txt": 181275 words
+2020/12/23 profile: memory profiling disabled, /tmp/profile271003129/mem.pprof
+
+go tool pprof -http=:8080 /tmp/profile271003129/mem.pprof
+```
 
 As we suspected the allocation was coming from readbyte — this wasn’t that complicated, readbyte is three lines long:
 
 > Use pprof to determine where the allocation is coming from.
 
+```sh
+go tool pprof -sample_index=alloc_space /tmp/profile271003129/mem.pprof
+File: main
+Type: alloc_space
+(pprof) top
+Showing nodes accounting for 1013.98kB, 100% of 1013.98kB total
+      flat  flat%   sum%        cum   cum%
+ 1009.97kB 99.60% 99.60%  1009.97kB 99.60%  main.readbyte (inline)
+    4.01kB   0.4%   100%  1013.98kB   100%  main.main
+         0     0%   100%  1013.98kB   100%  runtime.main
+
+(pprof) list readbyte
+Total: 1013.98kB
+words/main.go
+ 1009.97kB  1009.97kB (flat, cum) 99.60% of Total
+         .          .     14:func readbyte(r io.Reader) (rune, error) {
+ 1009.97kB  1009.97kB     15:	var buf [1]byte
+         .          .     16:	_, err := r.Read(buf[:])
+```
+
 ```go
 func readbyte(r io.Reader) (rune, error) {
-	var buf [1]byte // allocation is here
+	var buf [1]byte // allocation is here: 1009.97kB
 	_, err := r.Read(buf[:])
 	return rune(buf[0]), err
 }
 ```
 
-What we see is every call to readbyte is allocating a new one byte long array and that array is being allocated on the heap.
+What we see is **every call to readbyte is allocating** a new `one byte long array` and that array is being `allocated on the heap`.
 
-> What are some ways we can avoid this? Try them and use CPU and memory profiling to prove it.
+What are some ways we can avoid this?
+- Try them and 
+- use CPU and memory profiling to prove it.
 
 ----
 
