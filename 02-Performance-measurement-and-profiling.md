@@ -310,23 +310,49 @@ The **size of the arrow** represents **how much time** was **spent in children o
 
 ### 2.5.4. Improving our version
 
-Each call to `readbyte` results in a `syscall.Read` with a buffer size of **1**.
+The reason our program is slow is not because Go’s `syscall.Syscall` is slow.
 
-So the number of syscalls executed by our program is equal to the size of the input.
+It is because **syscalls in general are expensive operations**.
 
-We can see that in the pprof graph that reading the input dominates everything else.
+Each call to `readbyte` results in a `syscall.Read` with a buffer size of `1`.
+
+So the **number of syscalls** executed by our program is equal to the size of the input (1,3MB) — `1'270'330 syscalls`.
+
+We can see that in the pprof graph that **reading the input dominates** everything else.
+
+Inserting a `bufio.Reader` between the input file and `readbyte` will reduce the number of syscalls by 4096.
 
 ```go
-func readbyte(r io.Reader) (rune, error) {
-	var buf [1]byte // allocation is here
-	_, err := r.Read(buf[:])
-	return rune(buf[0]), err
-}
-
 func main() {
-	defer profile.Start(profile.MemProfile, profile.MemProfileRate(1)).Stop()
+     ...
+	b := bufio.NewReader(f) // Default buffer size = 4096
+	for {
+          r, err := readbyte(b)
+          ...
+	}
 }
 ```
+
+This reduces the number of syscalls to about 30.
+
+Compare the times of this revised program to `wc`.
+
+```sh
+time ./words3 ./examples/words/moby.txt
+"./examples/words/moby.txt": 181275 words
+
+real	0m0,212s
+
+time wc -w ./examples/words/moby.txt
+215829 ./examples/words/moby.txt
+
+real	0m0,012s
+```
+
+- How close is it?
+  - 17x slower still
+- Take a profile and see what remains.
+  - Largest box now is `runtime.mallocgc`
 
 ----
 

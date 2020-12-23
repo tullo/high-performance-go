@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"log"
@@ -24,10 +25,11 @@ func main() {
 		log.Fatalf("could not open file %q: %v", os.Args[1], err)
 	}
 
+	b := bufio.NewReader(f) // Default buffer size = 4096
 	words := 0
 	inword := false
 	for {
-		r, err := readbyte(f)
+		r, err := readbyte(b)
 		if err == io.EOF {
 			break
 		}
