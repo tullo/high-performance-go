@@ -168,8 +168,8 @@ Since Go 1.9 the **profile file contains all the information** needed to render 
 
 ### 2.5.1. Further reading
 
-- Profiling Go Programs (2013) https://blog.golang.org/pprof
-- Debugging performance issues in Go* programs https://software.intel.com/content/www/us/en/develop/blogs/debugging-performance-issues-in-go-programs.html
+- Profiling Go Programs https://blog.golang.org/pprof (2013)
+- Debugging performance issues in Go programs https://software.intel.com/content/www/us/en/develop/blogs/debugging-performance-issues-in-go-programs.html
   - Note: the formats described here are based on Go1.3 release.
 
 ----
@@ -227,7 +227,7 @@ sys	0m0,270s
 time wc -w ./examples/words/moby.txt
 215829 ./examples/words/moby.txt
 
-real	0m0,017s
+real	0m0,013s
 user	0m0,013s
 sys	0m0,005s
 ```
@@ -251,9 +251,9 @@ Now when we run the program a cpu.pprof file is created.
 ```sh
 time ./words2 ./examples/words/moby.txt
 
-2020/12/23 profile: cpu profiling enabled, /tmp/profile125403116/cpu.pprof
+2020/12/23 profile: cpu profiling enabled, /tmp/profile072172593/cpu.pprof
 "./examples/words/moby.txt": 181275 words
-2020/12/23 profile: cpu profiling disabled, /tmp/profile125403116/cpu.pprof
+2020/12/23 profile: cpu profiling disabled, /tmp/profile072172593/cpu.pprof
 
 real	0m0,611s
 user	0m0,166s
@@ -312,17 +312,18 @@ The **size of the arrow** represents **how much time** was **spent in children o
 
 The reason our program is slow is not because Go’s `syscall.Syscall` is slow.
 
-It is because **syscalls in general are expensive operations**.
+> It is because **syscalls in general are expensive operations**.
 
 Each call to `readbyte` results in a `syscall.Read` with a buffer size of `1`.
 
-So the **number of syscalls** executed by our program is equal to the size of the input (1,3MB) — `1'270'330 syscalls`.
+So the **number of syscalls** executed by our program is equal to the size of the input (1270330 bytes) — `1'270'330 syscalls`.
 
-We can see that in the pprof graph that **reading the input dominates** everything else.
+> We can see that in the pprof graph that **reading the input dominates** everything else.
 
 Inserting a `bufio.Reader` between the input file and `readbyte` will reduce the number of syscalls by 4096.
 
 ```go
+// moby.txt < bufio.Reader < readbyte
 func main() {
      ...
 	b := bufio.NewReader(f) // Default buffer size = 4096
@@ -346,7 +347,7 @@ real	0m0,212s
 time wc -w ./examples/words/moby.txt
 215829 ./examples/words/moby.txt
 
-real	0m0,012s
+real	0m0,013s
 ```
 
 - How close is it?
@@ -412,11 +413,13 @@ func readbyte(r io.Reader) (rune, error) {
 }
 ```
 
-What we see is **every call to readbyte is allocating** a new `one byte long array` and that array is being `allocated on the heap`.
+What we see is that **every call to readbyte is allocating** a new `one byte long array` and that array is being `allocated on the heap`.
 
 What are some ways we can avoid this?
 - Try them and 
 - use CPU and memory profiling to prove it.
+
+(1) Reuse array instance:
 
 ```go
 var buf [1]byte
@@ -433,13 +436,43 @@ user	0m0,179s
 sys	0m0,121s
 ```
 
+(2) Byte reader:
+
+```go
+type bytereader struct {
+	buf [1]byte
+	r   io.Reader
+}
+
+func (b *bytereader) next() (rune, error) {
+	_, err := b.r.Read(b.buf[:])
+	return rune(b.buf[0]), err
+}
+```
+
+```sh
+cd examples/words ; time go run main.go moby.txt
+"moby.txt": 181275 words
+
+real	0m0,146s
+user	0m0,172s
+sys	0m0,076s
+
+time wc -w ./examples/words/moby.txt
+215829 ./examples/words/moby.txt
+
+real	0m0,013s
+user	0m0,013s
+sys	0m0,000s
+```
+
 ----
 
 ## 2.5.6. Alloc objects vs. inuse objects
 
 Memory profiles come in two varieties, named after their go tool pprof flags
-- -alloc_objects reports the call site where each allocation was made.
-- -inuse_objects reports the call site where an allocation was made if it was reachable at the end of the profile.
+- `-alloc_objects` reports the call site **where each allocation was made**.
+- `-inuse_objects` reports the call site where an allocation was made if it was **reachable at the end of the profile**.
 
 To demonstrate this, here is a contrived program which will allocate a bunch of memory in a controlled manner.
 
