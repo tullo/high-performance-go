@@ -28,7 +28,9 @@ However, often you will find yourself in the position of asking:
 
 > Why is this program taking so long to run?
 
-Profiling whole programs which is useful for answering high level questions like.
+Profiling **whole** programs is useful for answering high level questions.
+
+In this section we’ll use profiling tools built into Go to investigate the operation of the program from the inside.
 
 ----
 
@@ -60,12 +62,17 @@ The more times a **function appears** in the profile, the more time that code pa
 
 ### 2.2.2. Memory profiling
 
-Memory profiling records the stack trace when a heap allocation is made.
+Memory profiling records the stack trace when a `heap allocation` is made.
 
-Memory profiling, like CPU profiling is sample based, by default memory profiling samples 1 in every 1000 allocations.
+**Stack allocations** are assumed to be free and are `not_tracked` in the memory profile.
+
+`Memory` profiling, like `CPU` profiling is **sample based**,
+by default memory profiling `samples 1 in every 1000 allocations`. This rate can be changed.
 
 Personal Opinion: I do not find memory profiling useful for finding memory leaks.
-There are better ways to determine how much memory your application is using.
+
+> There are better ways to determine **how much memory** your application is using.
+
 We will discuss these later in the presentation.
 
 ----
@@ -74,36 +81,42 @@ We will discuss these later in the presentation.
 
 Block profiling is quite unique to Go.
 
-A block profile records the amount of time a goroutine spent waiting for a shared resource.
+A `block profile` records the amount of time a goroutine spent **waiting for a shared resource**.
 
-This can be useful for determining concurrency bottlenecks in your application.
+This can be useful for determining **concurrency bottlenecks** in your application.
 
-Can show you when a large number of goroutines could make progress, but were blocked. Blocking includes:
+`Block profiling` can show you when a large number of **goroutines could make progress, but were blocked**.
 
-- Sending or receiving on a unbuffered channel.
-- Sending to a full channel
-- Receiving from an empty channel.
-- Trying to Lock a sync.Mutex that is locked by another goroutine.
+Blocking includes:
 
-> Block profiling is a very specialised tool, it should not be used until you believe you have eliminated all your CPU and memory usage bottlenecks.
+- **Sending or receiving** on a `unbuffered channel`.
+- **Sending** to a `full channel`.
+- **Receiving** from an `empty channel`.
+- **Trying to Lock** a `sync.Mutex` that is **locked by another goroutine**.
+
+> Block profiling is a **very specialised tool**,
+>
+> it **should not be used until** you believe you have
+>
+> **eliminated all your CPU and memory usage bottlenecks**.
 
 ----
 
 ### 2.2.4. Mutex profiling
 
-Mutex profiling is focused exclusively on operations that lead to delays caused by mutex contention.
+`Mutex profiling` is focused exclusively on **operations that lead to delays** caused by **mutex contention**.
 
-Just like blocking profile, it says how much time was spent waiting for a resource.
+Just like blocking profile, it says **how much time** was spent **waiting for a resource**.
 
-Said another way, the mutex profile reports how much time could be saved if the lock contention was removed.
+Said another way, the `mutex profile` **reports how much time could been saved** if the lock contention was removed.
 
 ----
 
 ## 2.3. One profile at at time
 
-Profiling is not free.
+Profiling is **not free**.
 
-Profiling has a moderate, but measurable impact on program performance—especially if you increase the memory profile sample rate.
+Profiling has a moderate, but measurable impact on programs performance — especially if you increase the **memory profile sample rate**.
 
 Do not enable more than one kind of profile at a time.
 
@@ -113,13 +126,14 @@ Do not enable more than one kind of profile at a time.
 
 ## 2.4. Collecting a profile
 
-The Go runtime’s profiling interface lives in the runtime/pprof package.
+The Go runtime’s profiling interface lives in the `runtime/pprof` package.
 
-runtime/pprof is a very low level tool, and for historic reasons the interfaces to the different kinds of profile are not uniform.
+`runtime/pprof` is a very low level tool, and for historic reasons the interfaces to the different kinds of profile are not uniform.
 
-As we saw in the previous section, pprof profiling is built into the testing package, but sometimes its inconvenient, or difficult, to place the code you want to profile in the context of at testing.B benchmark and must use the runtime/pprof API directly.
+As we saw in the previous section, pprof profiling is built into the testing package, but sometimes its **inconvenient, or difficult,
+to place the code you want to profile in the context of at testing.B benchmark and must use the `runtime/pprof` API directly**.
 
-A few years ago I wrote a small package, to make it easier to profile an existing application.
+A few years ago I wrote a small package, to make it **easier to profile an existing application**.
 
 https://github.com/pkg/profile
 
@@ -132,17 +146,21 @@ func main() {
 }
 ```
 
+We'll use the profile package throughout this section.
+
+Later in the day we’ll touch on using the runtime/pprof interface directly.
+
 ----
 
 ## 2.5. Analysing a profile with pprof
 
-The analysis is driven by the go pprof subcommand:
+The analysis is driven by the `go pprof` subcommand:
 
 `go tool pprof /path/to/your/profile`
 
 This tool provides several different representations of the profiling data; textual, graphical, even flame graphs.
 
-Since Go 1.9 the profile file contains all the information needed to render the profile.
+Since Go 1.9 the **profile file contains all the information** needed to render the profile.
 
 > You do no longer need the binary which produced the profile. 🎉
 
@@ -156,27 +174,67 @@ Since Go 1.9 the profile file contains all the information needed to render the 
 
 ----
 
-### 2.5.2. CPU profiling (exercise) DER ER NOGET GALT HER
+### 2.5.2. CPU profiling (exercise)
 
-curl -o moby.txt https://www.gutenberg.org/files/2701/2701-0.txt
+Let’s write a program to count words:
+
+```go
+func readbyte(r io.Reader) (rune, error) {
+	var buf [1]byte
+	_, err := r.Read(buf[:])
+	return rune(buf[0]), err
+}
+
+func main() {
+	f, err := os.Open(os.Args[1])
+	if err != nil {
+		log.Fatalf("could not open file %q: %v", os.Args[1], err)
+	}
+
+	words := 0
+	inword := false
+	for {
+		r, err := readbyte(f)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("could not read file %q: %v", os.Args[1], err)
+		}
+		if unicode.IsSpace(r) && inword {
+			words++
+			inword = false
+		}
+		inword = unicode.IsLetter(r)
+	}
+	fmt.Printf("%q: %d words\n", os.Args[1], words)
+}
+```
+
+Let’s see how many words there are in Herman Melville’s classic [Moby Dick](https://www.gutenberg.org/ebooks/2701) (sourced from Project Gutenberg)
 
 ```sh
-go build && time ./words moby.txt
-2020/12/18 13:54:19 profile: cpu profiling enabled, cpu.pprof
-"moby.txt": 181276 words
-2020/12/18 13:54:20 profile: cpu profiling disabled, cpu.pprof
+go build -o words1 ./examples/words/main.go
+time ./words1 ./examples/words/moby.txt
+"./examples/words/moby.txt": 181275 words
 
-real	0m0,208s
-user	0m0,018s
-sys	0m0,025s
-
-time wc -w moby.txt
-215830 moby.txt
-
-real	0m0,027s
-user	0m0,018s
-sys	0m0,008s
+real	0m0,439s
+user	0m0,174s
+sys	0m0,270s
 ```
+
+```sh
+time wc -w ./examples/words/moby.txt
+215829 ./examples/words/moby.txt
+
+real	0m0,017s
+user	0m0,013s
+sys	0m0,005s
+```
+
+So the numbers aren't the same. wc is about 19% higher because what it considers a word is different to what my simple program does. That’s not important — ​**both programs** take the whole file as input and in a single pass **count the number of transitions from word to non word**.
+
+Let's investigate why these programs have different run times using `pprof`.
 
 ----
 

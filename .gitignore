@@ -7,3 +7,6 @@ output/
 *.out
 *.test
 *.golden
+words1
+words2
+words3
