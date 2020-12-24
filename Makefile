@@ -106,3 +106,7 @@ time-words:
 
 inuse-allocs:
 	go run examples/inuseallocs/main.go
+
+block-profiling:
+	go test -run=XXX -bench=ClientServer$$ -blockprofile=/tmp/block.p net/http
+	go tool pprof -http=:8080 /tmp/block.p

@@ -537,13 +537,19 @@ What we see is **not** the objects that were allocated during the profile,
 
 ## 2.5.7. Block profiling
 
-The last profile type we’ll look at is block profiling. We’ll use the ClientServer benchmark from the `net/http` package
+The last profile type we’ll look at is block profiling.
+
+We'll use the **ClientServer** benchmark from the `net/http` package
 
 ```sh
 go test -run=XXX -bench=ClientServer$ -blockprofile=/tmp/block.p net/http
 
 pkg: net/http
-BenchmarkClientServer-12    	   22063	     54877 ns/op	    4996 B/op	      59 allocs/
+BenchmarkClientServer-12    	   22129	     54612 ns/op	    5000 B/op	      59 allocs/op
+```
+
+```sh
+go tool pprof -http=:8080 /tmp/block.p
 ```
 
 ---
