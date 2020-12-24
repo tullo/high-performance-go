@@ -482,6 +482,7 @@ const count = 100000
 var y []byte
 
 func main() {
+	// MemProfileRate: 1 => record a stack trace for every allocation.
 	defer profile.Start(profile.MemProfile, profile.MemProfileRate(1)).Stop()
 	y = allocate()
 	runtime.GC()
@@ -502,23 +503,35 @@ func makeByteSlice() []byte {
 }
 ```
 
-The graph of `allocated objects` shows the call graphs that lead to the allocation of every object during the profile.
+We set the memory profile rate to 1 — that is, record a stack trace for every allocation.
+
+This slows down the program a lot, but you'll see why in a minute.
 
 ```sh
-cd ../memory/
-go run memory.go 
-2020/12/18 15:27:07 profile: memory profiling enabled (rate 1), /tmp/profile925718186/mem.pprof
-2020/12/18 15:27:07 profile: memory profiling disabled, /tmp/profile925718186/mem.pprof
+go run examples/inuseallocs/main.go
 
-go tool pprof -http=:8080 /tmp/profile925718186/mem.pprof
-`http://localhost:8080/ui/?si=alloc_objects`
-# Not surprisingly more than 99% of the allocations were inside makeByteSlice.
-
-# Now lets look at the same profile using -inuse_objects
-`http://localhost:8080/ui/?si=inuse_objects`
+2020/12/23 profile: memory profiling enabled (rate 1), /tmp/profile284134162/mem.pprof
+2020/12/23 profile: memory profiling disabled, /tmp/profile284134162/mem.pprof
 ```
 
-What we see is **not** the objects that were allocated during the profile, but the **objects that remain in use**, at the time the profile was taken — this ignores the stack trace for objects which have been reclaimed by the garbage collector.
+Lets look at the graph of allocated objects:
+
+- The graph of `allocated objects` shows the **call graphs** that lead to the **allocation of every object during the profile**.
+
+```sh
+go tool pprof -http=:8080 /tmp/profile284134162/mem.pprof
+```
+
+Not surprisingly more than **99%** of the allocations were inside `makeByteSlice`.
+- http://localhost:8080/ui/?si=alloc_objects  (SAMPLE => `alloc_objects`)
+
+Now lets look at the same profile using `inuse_objects`
+- http://localhost:8080/ui/?si=inuse_objects (SAMPLE => `inuse_objects`)
+
+
+What we see is **not** the objects that were allocated during the profile, 
+- but the **objects that remain in use, at the time the profile was taken**
+- this **ignores the stack trace** for objects which have been **reclaimed by the garbage collector**.
 
 ----
 

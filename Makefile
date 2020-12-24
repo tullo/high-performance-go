@@ -8,6 +8,10 @@ SHELL = /bin/bash -o pipefail
 #
 # escape $ in makefile with $$
 
+# =============================================================================
+# === BENCHMARKS ==============================================================
+# =============================================================================
+
 fib-bench-all: # run all benchmarks
 	go test -run=^$$ -bench=. ./examples/fib
 
@@ -84,7 +88,9 @@ compiler-optimisation-defense:
 benchmarking-with-random-data:
 	go test -run=^$$ -bench=PopcntRand ./examples/popcnt
 
-# ========  ========================================
+# =============================================================================
+# === TRACES ==================================================================
+# =============================================================================
 
 words:
 #	go build -o words1 ./examples/words/main.go
@@ -98,3 +104,5 @@ time-words:
 	time wc -w ./examples/words/moby.txt
 	cd examples/words/; time go run main.go moby.txt
 
+inuse-allocs:
+	go run examples/inuseallocs/main.go
