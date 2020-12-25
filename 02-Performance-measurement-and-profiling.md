@@ -596,35 +596,22 @@ BenchmarkInc-16    	18283101	        67.8 ns/op
 
 ### 2.5.9. Framepointers
 
-The frame pointer is a register that always points to the top of the current stack frame.
+As of Go 1.7 the **compiler now enables frame pointers by default**.
+
+The frame pointer is a register that always **points to the top of the current stack frame**.
 
 Framepointers enable tools like gdb(1), and perf(1) to understand the Go call stack.
 
-- [Seven ways to profile a Go program](https://talks.godoc.org/github.com/davecheney/presentations/seven.slide) (slides) 2016
-- [Golang UK Conference 2016 - Dave Cheney - Seven ways to Profile Go Applications](https://www.youtube.com/watch?v=2h_NFBFrciI)
+We won't cover these tools in this workshop, but you can read and watch a presentation I gave on seven different ways to profile Go programs.
 
+Golang UK Conference 2016:
+- Slides: [Seven ways to profile a Go program](https://talks.godoc.org/github.com/davecheney/presentations/seven.slide)
+- Video: [Seven ways to Profile Go Applications](https://www.youtube.com/watch?v=2h_NFBFrciI) by Dave Cheney
+
+----
 
 ```sh
-# The testing package has built in support for generating CPU, memory, and block profiles.
-#   -cpuprofile=$FILE writes a CPU profile to $FILE. 
-#   -memprofile=$FILE, writes a memory profile to $FILE, 
-#   -memprofilerate=N adjusts the profile rate to 1/N.
-#   -blockprofile=$FILE writes a block profile to $FILE.
-go test -run=XXX -bench=IndexByte -cpuprofile=/tmp/c.p bytes
-go tool pprof bytes.test /tmp/c.p
-
-#==============================================================================
-# We can visualise memory profiles in the same way.
-go build -gcflags='-memprofile=/tmp/m.p'
-go tool pprof --alloc_objects -svg $(go tool -n compile) /tmp/m.p > alloc_objects.svg
-go tool pprof --inuse_objects -svg $(go tool -n compile) /tmp/m.p > inuse_objects.svg
-# go tool [-n] command [args...]
-...
-compile
-doc
-pprof
-...
-
+# START-NOTES "Seven ways to profile a Go program" ============================
 
 # A simple way to obtain a general idea of how hard the garbage collector is working
 # is to enable the output of GC logging. 
@@ -951,4 +938,9 @@ trace.WithRegion(ctx, "makeCappuccino", func() {
 go build -gcflags=-traceprofile=/tmp/t.p cmd/compile/internal/gc
 go tool trace /tmp/t.p
 # open in chrome or firefox
+
+# END-NOTES "Seven ways to profile a Go program" ==============================
 ```
+
+----
+
