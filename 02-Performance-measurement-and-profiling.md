@@ -944,3 +944,26 @@ go tool trace /tmp/t.p
 
 ----
 
+### 2.5.10. Exercise
+
+`b.StopTimer / b.StartTimer` are surprisingly **expensive**.
+
+> Use the profiling flags built into go test to profile the cost of b.StopTimer.
+
+```sh
+go test -bench=. -benchtime=100000x -cpuprofile=c.p ./examples/benchstartstop
+
+BenchmarkStartStop-12    	  100000	        84.6 ns/op
+```
+
+Question:
+- is `b.ResetTimer` also expensive?
+- Does that matter?
+
+```sh
+# b.ResetTimer is much cheaper
+go test -bench=. -benchtime=100000x -cpuprofile=c.p ./examples/benchstartstop/
+
+BenchmarkStartStop-12     	  100000	        76.6 ns/op
+BenchmarkResetTimer-12    	  100000	         0.00473 ns/op
+```
