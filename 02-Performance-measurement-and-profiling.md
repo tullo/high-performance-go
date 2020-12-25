@@ -10,7 +10,6 @@ High Performance Go Workshop
     2.3. One profile at at time
     2.4. Collecting a profile
     2.5. Analysing a profile with pprof
-    2.6. Discussion
 
 3. Compiler optimisations
 4. Execution Tracer
@@ -558,16 +557,39 @@ go tool pprof -http=:8080 /tmp/block.p
 
 Mutex contention increases with the number of goroutines.
 
+```go
+type AtomicVariable struct {
+	mu  sync.Mutex
+	val uint64
+}
+
+func (av *AtomicVariable) Inc() {
+	av.mu.Lock()
+	av.val++
+	av.mu.Unlock()
+}
+
+func BenchmarkInc(b *testing.B) {
+	var av AtomicVariable
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			av.Inc()
+		}
+	})
+}
+```
+
+Try running this on your machine.
+
 ```sh
 go test -bench=. -cpu=1,2,4,8,16 ./examples/mutex/
-goos: linux
-goarch: amd64
-pkg: high-performance-go-workshop/examples/mutex
-BenchmarkInc       	91271556	        12.6 ns/op
-BenchmarkInc-2     	77997690	        16.6 ns/op
-BenchmarkInc-4     	31951504	        39.9 ns/op
-BenchmarkInc-8     	21071281	        55.7 ns/op
-BenchmarkInc-16    	17673577	        65.4 ns/op
+
+BenchmarkInc       	89743338	        12.6 ns/op
+BenchmarkInc-2     	72014619	        16.4 ns/op
+BenchmarkInc-4     	30865150	        41.0 ns/op
+BenchmarkInc-8     	20037595	        59.5 ns/op
+BenchmarkInc-16    	18283101	        67.8 ns/op
 ```
 
 ----
