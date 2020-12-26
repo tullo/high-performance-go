@@ -766,3 +766,7 @@ This is a post about [how the Go compiler implements inlining](https://dave.chen
 - I’m using the `//go:noinline` pragma to prevent the compiler from inlining max. This is because I want to isolate the effects of inlining on max rather than disabling optimisations globally with -gcflags='-l -N'.
 - Compare the output of go test -bench=. `-gcflags=-S` **with and without** the `//go:noinline` annotation.
 - Check with the `-gcflags=-d=ssa/prove/debug=on` flag.
+
+----
+
+(Home) [prev](README.md) | [next](02-Performance-measurement-and-profiling.md) (Performance measurement and profiling)

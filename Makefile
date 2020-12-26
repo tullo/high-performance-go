@@ -113,3 +113,11 @@ block-profiling:
 
 mutex-profiling:
 	go test -bench=. -cpu=1,2,4,8,16 ./examples/mutex
+
+bench-startstop-reset:
+	go test -bench=. -benchtime=100000x -cpuprofile=c.p ./examples/benchstartstop
+
+# =============================================================================
+# === COMPILER OPTIMISATION ===================================================
+# =============================================================================
+

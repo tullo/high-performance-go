@@ -967,3 +967,7 @@ go test -bench=. -benchtime=100000x -cpuprofile=c.p ./examples/benchstartstop/
 BenchmarkStartStop-12     	  100000	        76.6 ns/op
 BenchmarkResetTimer-12    	  100000	         0.00473 ns/op
 ```
+
+----
+
+(Benchmarking) [prev](01-Benchmarking.md) | [next](03-Compiler-optimisations.md) (Compiler optimisations)
