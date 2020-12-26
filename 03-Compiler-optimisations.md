@@ -43,19 +43,35 @@ Then the code is passed to the `SSA compiler` for further optimisation like:
 
 ### 3.1. History of the Go compiler
 
-In 2015 the then Go 1.5 compiler was mechanically translated from C into Go.
+In 2015 the Go 1.5 compiler was mechanically translated from `C` into `Go`.
 
-A year later, Go 1.7 introduced a [new compiler backend](https://blog.golang.org/go1.7) based on [SSA](https://en.wikipedia.org/wiki/Static_single_assignment_form) (Static single assignment form) techniques replaced the previous Plan 9 style code generation.
+A year later, Go 1.7 introduced a [new compiler backend](https://blog.golang.org/go1.7) based on [SSA](https://en.wikipedia.org/wiki/Static_single_assignment_form) (`Static single assignment`) techniques replaced the previous Plan 9 style code generation.
+
+This new backend introduced many opportunities for **generic and architecture specific** optimistions.
+
+----
 
 ### 3.2. Escape analysis
 
-A goroutine’s stack exists as a cheap place to store local variables.
+The Go spec does not mention the heap or the stack.
 
-There is no need to garbage collect things on the stack as they are effectively collected when the function returns.
+It only mentions that the language is garbage collected, and gives no hints as to how this is to be achieved.
 
-Therefore, where it is safe to do so, an allocation placed on the stack will be more efficient.
+**A compliant Go implementation** of the Go spec *could* store **every allocation on the heap**.
 
-In Go, the compiler automatically moves a value to the heap if it lives beyond the lifetime of the function call. It is said that the value escapes to the heap.
+- That would put a lot of pressure on the the garbage collector
+- But it would be in no way incorrect;
+
+A goroutine's **stack** exists as a **cheap place to store local variables**.
+
+- There is no need to garbage collect things on the stack as they are effectively collected when the function returns.
+
+> Therefore, where it is safe to do so, **an allocation placed on the stack will be more efficient**.
+
+In Go:
+
+- The compiler automatically moves a **value to the heap** if it lives beyond the lifetime of the function call.
+- It is said that the **value escapes to the heap**.
 
 ```go
 type Foo struct {
@@ -63,26 +79,26 @@ type Foo struct {
 }
 
 func NewFoo() *Foo {
-	return &Foo{a: 3, b: 1, c: 4, d: 7}
+	return &Foo{a: 3, b: 1, c: 4, d: 7} // Foo escapes to the heap
 }
-
-// In this example the Foo allocated in NewFoo will be moved to the heap
-// so its contents remain valid after NewFoo has returned.
 ```
 
-It isn’t so much an optimisation as an automatic correctness feature.
-
-> Accidentally returning the address of a stack allocated variable is not possible in Go.
+In this example the `Foo` instance allocated in `NewFoo` will be moved to the **heap** so its contents remain valid after `NewFoo` has returned.
 
 
+This has been present since the earliest days of Go. It isn't so much an optimisation as **an automatic correctness feature**.
 
-But the compiler can also do the opposite; it can find things which would be assumed to be allocated on the heap, and move them to stack.
+> Accidentally returning the address of a stack allocated variable is **not possible in Go**.
+
+But the compiler can also do the opposite:
+
+- It can find things which would be assumed to be allocated on the heap, and **move them to stack**.
 
 ```go
-// Sum adds the `int`s between 1 and 100 and returns the result.
+// Sum adds integers between 1 and 100 and returns the result.
 func Sum() int {
 	var count = 100
-	numbers := make([]int, count) // only referenced inside Sum
+	numbers := make([]int, count) // numbers is only referenced inside Sum => does not escape.
 	for i := range numbers {
 		numbers[i] = i + 1
 	}
@@ -96,13 +112,16 @@ func Sum() int {
 
 func main() {
 	answer := Sum()
-    fmt.Println(answer) // fmt.Println is a variadic function
+    fmt.Println(answer) // fmt.Println is a variadic function ...
 }
-
-// The compiler will arrange to store the 100 integers for that slice on the stack, 
-// rather than the heap.
-// There is no need to garbage collect numbers, it is automatically freed when Sum returns.
 ```
+
+Because the **`numbers` slice** is only referenced inside `Sum`
+
+- The compiler will arrange to **store the 100 integers** for that slice **on the stack**, rather than the heap.
+- There is **no need to garbage collect `numbers`**, it is **automatically freed** when `Sum` returns.
+
+----
 
 ### 3.2.1. Prove it!
 
