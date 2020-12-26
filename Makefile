@@ -121,3 +121,15 @@ bench-startstop-reset:
 # === COMPILER OPTIMISATION ===================================================
 # =============================================================================
 
+escape-analysis-sum: #	-m = escape analysis decisions
+	go build -gcflags=-m examples/esc/sum.go
+#	examples/esc/sum.go:22:13: inlining call to fmt.Println
+#	examples/esc/sum.go:8:17: make([]int, count) does not escape
+#	examples/esc/sum.go:22:13: answer escapes to heap
+#	examples/esc/sum.go:22:13: []interface {} literal does not escape
+	@echo
+	go build -gcflags='-m -m' examples/esc/sum.go 2>&1 | grep sum.go:22
+	@echo
+	go build -gcflags=-m examples/esc/center.go
+	@echo
+	go test -run=none -bench=Sum ./examples/esc/
