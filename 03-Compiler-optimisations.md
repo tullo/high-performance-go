@@ -543,11 +543,23 @@ Adjusting the inlining level is performed with the `-gcflags=-l` flag.
 - `-gcflags=-l`, inlining disabled.
 - `-gcflags='-l -l'` inlining level 2, more aggressive, might be faster, may make bigger binaries.
 - `-gcflags='-l -l -l'` inlining level 3, more aggressive again, binaries definitely bigger, maybe faster again, but might also be buggy.
-- `-gcflags=-l=4` (four `-l`s) in Go 1.11 will enable the experimental mid stack inlining optimisation.
+- `-gcflags=-l=4` (four `-l`s) in **Go 1.11** will enable the **experimental** `mid stack inlining` optimisation.
+
+----
 
 ### 3.4.3. Mid Stack inlining
 
-Since Go 1.12 so called mid stack inlining has been enabled
+**Since Go 1.12** so called `mid stack inlining` has been **enabled**.
+
+We can see an example of mid stack inlining in the previous example.
+
+Because of inlining improvements `F` is now `inlined into its caller`.
+
+This is for two reasons:
+- When `Max` is inlined into `F`, `F` contains no other function calls thus it becomes a **potential leaf function**, assuming its **complexity budget** has not been exceeded.
+- Because `F` is a simple function — `​inlining and dead code elimination` has **eliminated much of its complexity budget** — ​it is eligable for `mid stack inlining` irrispective of calling `Max`.
+
+----
 
 ### 3.4.4. Further reading
 
@@ -555,6 +567,10 @@ Since Go 1.12 so called mid stack inlining has been enabled
 - [How to use conditional compilation with the go build tool](http://dave.cheney.net/2013/10/12/how-to-use-conditional-compilation-with-the-go-build-tool)
 
 ```sh
+# =============================================================================
+# START - Further reading notes ===============================================
+# =============================================================================
+
 go list -f '{{.GoFiles}}' os/exec
 # [exec.go exec_unix.go lp_unix.go]
 
@@ -592,6 +608,8 @@ go test -tags=integration
 https://peter.bourgon.org/go-in-production/#testing-and-validation
 https://stackoverflow.com/questions/25965584/separating-unit-tests-and-integration-tests-in-go
 ```
+
+----
 
 ### Debugging is optional
 
@@ -649,13 +667,23 @@ integration_w_race:
 	go test -race -integration -allocator -testserver -v ./...
 
 # https://github.com/pkg/sftp/blob/master/Makefile
+
+
+
+# =============================================================================
+# END - Further reading notes =================================================
+# =============================================================================
 ```
 
 ----
 
 ## 3.5. [Prove pass](https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html#prove_pass)
 
-A few releases ago the SSA backend gained a, so called, prove pass. Prove, the verb form of Proof, establishes the relationship between variables.
+A few releases ago the SSA backend gained a `prove pass`.
+
+Prove establishes the `relationship between variables`.
+
+Let's look at an example to explain what prove is doing.
 
 ```go
 package main
@@ -675,17 +703,15 @@ func main() {
 }
 ```
 
-### 3.5.1. Prove it (ha!)
+### 3.5.1. Prove it
 
 ```sh
 go build -gcflags=-d=ssa/prove/debug=on examples/prove/foo.go
-# command-line-arguments
+
 examples/prove/foo.go:5:10: Proved Less32
 ```
 
-The compiler is saying that it has proven that the branch will always be true.
-
-What happens if a and b are passing into F() as parameters? `No profing`
+Line 5 `if x > 3`: The compiler is saying that it has proven that the branch will always be true.
 
 ----
 

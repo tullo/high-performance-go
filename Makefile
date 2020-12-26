@@ -142,3 +142,7 @@ leaf-func-inlining: 	# -m = escape analysis decisions
 	@echo
 	@echo
 	bash asm.sh ./examples/inl/max.go
+
+prove-pass:				# -gcflags=-d=ssa/prove/debug=on
+	go build -gcflags=-d=ssa/prove/debug=on examples/prove/foo.go
+#	examples/prove/foo.go:5:10: Proved Less32
