@@ -146,3 +146,8 @@ leaf-func-inlining: 	# -m = escape analysis decisions
 prove-pass:				# -gcflags=-d=ssa/prove/debug=on
 	go build -gcflags=-d=ssa/prove/debug=on examples/prove/foo.go
 #	examples/prove/foo.go:5:10: Proved Less32
+
+intrinsic-functions:	# code replacement with architecture native instructions
+	go test -bench=.  ./examples/popcnt-intrinsic/
+	@echo
+	bash asm.sh ./examples/counter/counter.go

@@ -717,24 +717,86 @@ Line 5 `if x > 3`: The compiler is saying that it has proven that the branch wil
 
 ## 3.6 Compiler intrinsics
 
-An intrinsic function is regular Go code written in regular Go, however the compiler contains specific drop in replacements for the functions.
+Go allows you to `write functions in assembly` if required.
+
+The technique involves a `forwarding declared function` — ​a function without a body — ​**and a corresponding** `assembly function`.
+
+```go
+// decl.go
+package asm
+
+// Add returns the sum of a and b.
+func Add(a int64, b int64) int64
+```
+
+Note the `Add` function **has no body**.
+
+To satisfy the compiler we must supply the `assembly` for this function, which we can do via a `.s file` in the same package.
+
+```go
+// add.s
+TEXT ·Add(SB),$0
+	MOVQ a+0(FP), AX
+	ADDQ b+8(FP), AX
+	MOVQ AX, ret+16(FP)
+	RET
+```
+
+Now we can build, test, and use our `asm.Add` function just like normal Go code.
+
+But there’s a problem, `assembly functions cannot be inlined`.
+
+There have been various proposals for an inline assembly syntax for Go, but they have not been accepted by the Go developers.
+
+Instead, Go has added `intrinsic functions`.
+
+An `intrinsic function` is regular Go code written in regular Go, however the **compiler contains specific drop in replacements** for the functions.
+
+The two packages that make use of this are:
+
+ - `math/bits`
+ - `sync/atomic`
+
+These replacements are implemented in the **compiler backend**:
+- if your **architecture** supports a **faster way of doing an operation**
+- it will be **transparently replaced with the comparable instruction** during compilation.
+
+As well as generating more efficient code, because `intrinsic functions` are just normal Go code, **the rules of `inlining, and mid stack inlining` apply to them**.
+
+----
 
 ### 3.6.1. Popcnt example
+
+Population count is an important crypto operation so modern CPUs have a **native instruction** to perform it.
+
+The `math/bits` package provides a set of functions, `OnesCount…`​ which are recognised by the compiler and **replaced with their native equivalent**.
+
+```go
+func BenchmarkMathBitsPopcnt(b *testing.B) {
+	var r int
+	for i := 0; i < b.N; i++ {
+		r = bits.OnesCount64(uint64(i)) // intrinsic function
+	}
+	Result = uint64(r)
+}
+```
+
+Run the benchmark and compare the performance of the hand rolled shift implementation and `math/bits.OnesCount64`.
 
 ```sh
 go test -bench=.  ./examples/popcnt-intrinsic/
 
-BenchmarkPopcnt-12            	772198281	         1.51 ns/op
+BenchmarkPopcnt-12            	777447768	         1.51 ns/op
 BenchmarkMathBitsPopcnt-12    	1000000000	         0.585 ns/op
 ```
 
 ### 3.6.2. Atomic counter example
 
-Here’s an example of an atomic counter type.
+Here's an example of an atomic counter type.
 
-We’ve got methods on types, method calls several levels deep, multiple packages, etc.
+We've got methods on types, method calls several levels deep, multiple packages, etc.
 
-You’d be forgiven for thinking this might have a lot of overhead.
+You'd be forgiven for thinking this might have a lot of overhead.
 
 ```go
 package main
@@ -768,32 +830,34 @@ func main() {
 }
 ```
 
-But, because of the interation between inlining and compiler intrinsics, this code collapses down to efficient native code on most platforms.
+But, because of the interation between `inlining` and `compiler intrinsics`, this **code collapses down to efficient native code on most platforms**.
 
 ```sh
-./asm.sh examples/counter-intrinsic/counter.go
+bash asm.sh ./examples/counter/counter.go
 
-# command-line-arguments
-"".(*counter).get STEXT nosplit size=14 args=0x10 locals=0x0
-	0x0000 00000 (counter.go:10)	MOVQ	"".c+8(SP), AX
-	0x0005 00005 (counter.go:10)	MOVQ	(AX), AX           # c.get()
-	0x0008 00008 (counter.go:10)	MOVQ	AX, "".~r0+16(SP)
-	0x000d 00013 (counter.go:10)	RET
-"".(*counter).inc STEXT nosplit size=24 args=0x10 locals=0x0
-	0x0000 00000 (counter.go:13)	MOVL	$1, AX
-	0x0005 00005 (counter.go:13)	MOVQ	"".c+8(SP), CX
-	0x000a 00010 (counter.go:13)	LOCK
-	0x000b 00011 (counter.go:13)	XADDQ	AX, (CX)           # c.inc()
-	0x000f 00015 (counter.go:13)	INCQ	AX
-	0x0012 00018 (counter.go:13)	MOVQ	AX, "".~r0+16(SP)
-	0x0017 00023 (counter.go:13)	RET
-"".(*counter).reset STEXT nosplit size=16 args=0x10 locals=0x0
-	0x0000 00000 (counter.go:16)	XORL	AX, AX
-	0x0002 00002 (counter.go:16)	MOVQ	"".c+8(SP), CX
-	0x0007 00007 (counter.go:16)	XCHGQ	AX, (CX)           # c.reset()
-	0x000a 00010 (counter.go:16)	MOVQ	AX, "".~r0+16(SP)
-	0x000f 00015 (counter.go:16)	RET
+"".f STEXT nosplit size=36 args=0x8 locals=0x0
+        0x0000 00000 (examples/counter/counter.go:21) TEXT    "".f(SB), NOSPLIT|ABIInternal, $0-8
+        0x0000 00000 (<unknown line number>)    NOP
+        0x0000 00000 (examples/counter/counter.go:22) MOVL    $1, AX
+        0x0005 00005 (examples/counter/counter.go:13) LEAQ    "".c(SB), CX
+        0x000c 00012 (examples/counter/counter.go:13) LOCK
+        0x000d 00013 (examples/counter/counter.go:13) XADDQ   AX, (CX)         # 1
+        0x0011 00017 (examples/counter/counter.go:23) XCHGL   AX, AX
+        0x0012 00018 (examples/counter/counter.go:10) MOVQ    "".c(SB), AX     # 2
+        0x0019 00025 (<unknown line number>)    NOP
+        0x0019 00025 (examples/counter/counter.go:16) XORL    AX, AX
+        0x001b 00027 (examples/counter/counter.go:16) XCHGQ   AX, (CX)         # 3
+        0x001e 00030 (examples/counter/counter.go:24) MOVQ    AX, "".~r0+8(SP)
+        0x0023 00035 (examples/counter/counter.go:24) RET
+# 1 => c.inc()
+# 2 => c.get()
+# 3 => c.reset()
 ```
+
+Further reading:
+
+- [Mid-stack inlining in the Go compiler](https://docs.google.com/presentation/d/1Wcblp3jpfeKwA0Y4FOmj63PW52M_qmNqlQkNaLj0P5o/edit#slide=id.p) by David Lazar
+- [Proposal: Mid-stack inlining in the Go compiler](https://github.com/golang/proposal/blob/master/design/19348-midstack-inlining.md)
 
 ----
 
