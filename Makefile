@@ -135,7 +135,7 @@ escape-analysis-sum:	# -m = escape analysis decisions
 	go test -run=none -bench=Sum ./examples/esc/
 
 leaf-func-inlining: 	# -m = escape analysis decisions
-	go build -gcflags=-m examples/inl/max.go
+	go build -gcflags=-m=2 examples/inl/max.go
 	@echo
 	@echo
 	go build -gcflags=-S examples/inl/max.go 2>&1 | grep -A5 '"".F STEXT'
