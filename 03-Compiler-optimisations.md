@@ -60,7 +60,7 @@ It only mentions that the language is garbage collected, and gives no hints as t
 **A compliant Go implementation** of the Go spec *could* store **every allocation on the heap**.
 
 - That would put a lot of pressure on the the garbage collector
-- But it would be in no way incorrect;
+- But it would be in no way incorrect
 
 A goroutine's **stack** exists as a **cheap place to store local variables**.
 
@@ -174,7 +174,7 @@ examples/esc/sum.go:22:13: answer escapes to heap
 examples/esc/sum.go:22:13: []interface {} literal does not escape
 ```
 
-In short, don't worry about line 22, its not important to this discussion.
+In short, don't worry about line 22, it's not important to this discussion.
 
 ----
 
@@ -294,21 +294,23 @@ func BenchmarkSum(b *testing.B) {
 
 ## 3.3. Inlining
 
-In Go function calls have a fixed overhead; stack and preemption checks.
+In Go function calls have a fixed overhead; **stack and preemption checks**.
 
-Some of this is ameliorated by hardware branch predictors, but it’s still a cost in terms of function size and clock cycles.
+Some of this is ameliorated by hardware branch predictors, but it's still a **cost in terms of function size and clock cycles**.
 
-Inlining is the classical optimisation that avoids these costs.
+> Inlining is the classical optimisation that avoids these costs.
 
-Until Go 1.11 inlining only worked on leaf functions, a function that does not call another. 
+Until Go 1.11 inlining only worked on `leaf functions`, a function that does not call another. 
 
 The justification for this is:
--  functions over a certain size
-   -  some count of instructions, plus a few operations which prevent inlining 
-- small functions on the other hand pay a fixed overhead for a relatively small amount of useful work performed. 
-  - These are the functions that inlining targets as they benefit the most.
+-  If a function does a lot of work, then the preamble overhead will be negligible.
+   - functions over a certain size (currently some count of instructions, plus a few operations which prevent inlining)
+- **small functions** on the other hand pay a **fixed overhead** for a relatively small amount of useful work performed. 
+  - These are the functions that **inlining targets** as they benefit the most.
 
 The other reason is that heavy inlining makes stack traces harder to follow.
+
+----
 
 ### 3.3.1. Inlining (example)
 
@@ -333,7 +335,7 @@ func main() {
 }
 ```
 
-Again we use the -gcflags=-m flag to view the compilers optimisation decision.
+Again we use the `-gcflags=-m` flag to view the compilers optimisation decision.
 
 ```sh
 go build -gcflags=-m examples/inl/max.go
@@ -341,31 +343,36 @@ go build -gcflags=-m examples/inl/max.go
 examples/inl/max.go:3:6: can inline Max
 examples/inl/max.go:10:6: can inline F
 examples/inl/max.go:12:8: inlining call to Max
-examples/inl/max.go:18:6: can inline main
-examples/inl/max.go:19:3: inlining call to F
-examples/inl/max.go:19:3: inlining call to Max
+examples/inl/max.go:16:6: can inline main
+examples/inl/max.go:17:3: inlining call to F
+examples/inl/max.go:17:3: inlining call to Max
 ```
 
-The compiler printed two lines.
- - The first at line 3, the declaration of Max, telling us that it can be inlined.
- - The second is reporting that the body of Max has been inlined into the caller at line 12.
+The compiler printed two lines:
+
+ - The first at line 3, the declaration of `Max`, telling us that it can be inlined.
+ - The second is reporting that the `body of Max` has been inlined into the caller at line 12.
 
 ----
 
 ### 3.3.2. What does inlining look like?
 
+Compile `max.go` and see what the optimised version of `F()` became.
+
 ```sh
 go build -gcflags=-S examples/inl/max.go 2>&1 | grep -A5 '"".F STEXT'
-
 "".F STEXT nosplit size=1 args=0x0 locals=0x0
-	0x0000 00000 (/home/anda/code/tullo/high-performance-go-workshop/examples/inl/max.go:10)	TEXT	"".F(SB), NOSPLIT|ABIInternal, $0-0
-	0x0000 00000 (/home/anda/code/tullo/high-performance-go-workshop/examples/inl/max.go:10)	FUNCDATA	$0, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
-	0x0000 00000 (/home/anda/code/tullo/high-performance-go-workshop/examples/inl/max.go:10)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
-	0x0000 00000 (/home/anda/code/tullo/high-performance-go-workshop/examples/inl/max.go:12)	RET
-	0x0000 c3                                               .
+	0x0000 00000 (examples/inl/max.go:10)	TEXT	"".F(SB), NOSPLIT|ABIInternal, $0-0
+	0x0000 00000 (examples/inl/max.go:10)	FUNCDATA	$0, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x0000 00000 (examples/inl/max.go:10)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x0000 00000 (examples/inl/max.go:12)	RET
 ```
 
-This is the body of F once Max has been inlined into it — there’s nothing happening in this function. I know there’s a lot of text on the screen for nothing, but take my word for it, the only thing happening is the RET. In effect F became:
+This is the body of `F` once `Max` has been inlined into it — there's nothing happening in this function. 
+
+I know there's a lot of text on the screen for nothing, but take my word for it, the only thing happening is the `RET`.
+
+In effect `F` became:
 
 ```go
 func F() {
@@ -373,14 +380,22 @@ func F() {
 }
 ```
 
-For the rest of the presentation I’ll be using a small shell script to reduce the clutter in the assembly output.
+For the rest of the presentation I'll be using a small shell script to reduce the clutter in the assembly output.
 
 ```sh
 # asm.sh
 go build -gcflags=-S 2>&1 $@ | grep -v PCDATA | grep -v FUNCDATA | less
-#
+
 # ./asm.sh ./examples/inl/max.go
 ```
+
+> What are `FUNCDATA` and `PCDATA`?
+>
+> The output from -S is not the final machine code that goes into your binary. The linker does some processing during the final link stage.
+>
+> Lines like `FUNCDATA` and `PCDATA` are **metadata for the garbage collector** which are moved elsewhere when linking.
+>
+> If you're reading the output of -S, **just ignore** FUNCDATA and PCDATA lines; they're **not part of the final binary**.
 
 ----
 

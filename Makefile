@@ -121,7 +121,7 @@ bench-startstop-reset:
 # === COMPILER OPTIMISATION ===================================================
 # =============================================================================
 
-escape-analysis-sum: #	-m = escape analysis decisions
+escape-analysis-sum:	# -m = escape analysis decisions
 	go build -gcflags=-m examples/esc/sum.go
 #	examples/esc/sum.go:22:13: inlining call to fmt.Println
 #	examples/esc/sum.go:8:17: make([]int, count) does not escape
@@ -133,3 +133,12 @@ escape-analysis-sum: #	-m = escape analysis decisions
 	go build -gcflags=-m examples/esc/center.go
 	@echo
 	go test -run=none -bench=Sum ./examples/esc/
+
+leaf-func-inlining: 	# -m = escape analysis decisions
+	go build -gcflags=-m examples/inl/max.go
+	@echo
+	@echo
+	go build -gcflags=-S examples/inl/max.go 2>&1 | grep -A5 '"".F STEXT'
+	@echo
+	@echo
+	bash asm.sh ./examples/inl/max.go
