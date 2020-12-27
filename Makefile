@@ -175,3 +175,6 @@ mandelbrot-timer:
 
 mandelbrot-runtime-pprof:
 	cd examples/mandelbrot-runtime-pprof ; go run mandelbrot.go > cpu.pprof
+
+mandelbrot-pkg-profile:
+	cd examples/mandelbrot-pkg-profile ; go run mandelbrot.go > cpu.pprof

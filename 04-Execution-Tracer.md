@@ -108,6 +108,14 @@ go run mandelbrot.go > cpu.pprof # okay here as well
 
 ### 4.3.1. Generating a profile with github.com/pkg/profile
 
+The previous slide showed a super cheap way to generate a profile, but it has a few problems.
+- If you forget to **redirect the output to a file** then you'll blow up that terminal session.
+- If you write anything else to `os.Stdout`, for example, `fmt.Println` you'll **corrupt the trace**.
+
+The recommended way to use `runtime/pprof` is to [write the trace to a file](https://godoc.org/runtime/pprof#hdr-Profiling_a_Go_program). But, then you have to make sure the trace is stopped, and file is closed before your program stops, including if someone `^C`'s it.
+
+I wrote a [package](https://godoc.org/github.gom/pkg/profile) to take care of it.
+
 ```go
 import "github.com/pkg/profile"
 
@@ -120,15 +128,17 @@ If we run this version, we get a profile written to the current working director
 ```sh
 go run mandelbrot.go
 
-2020/12/19 22:46:48 profile: cpu profiling enabled, cpu.pprof
-2020/12/19 22:46:50 profile: cpu profiling disabled, cpu.pprof
+2020/12/19 profile: cpu profiling enabled, cpu.pprof
+2020/12/19 profile: cpu profiling disabled, cpu.pprof
 # ls
- 1,8K dec 19 22:46 cpu.pprof
- 2,7K dec 19 22:46 mandelbrot.go
- 520K dec 19 22:46 mandelbrot.png
+  2085 dec 19 cpu.pprof
+  2728 dec 19 mandelbrot.go
+532406 dec 19 mandelbrot.png
 ```
 
 > Using `pkg/profile` is not mandatory, but it takes care of a lot of the boilerplate around collecting and recording traces, so we’ll use it for the rest of this workshop.
+
+----
 
 ### 4.3.2. Analysing the profile
 
