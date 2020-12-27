@@ -1,0 +1,155 @@
+"".BenchmarkBoundsCheckInOrder STEXT nosplit size=422 args=0x8 locals=0x18
+	0x0000 00000 (bounds_test.go:9)	TEXT	"".BenchmarkBoundsCheckInOrder(SB), NOSPLIT|ABIInternal, $24-8
+	0x0000 00000 (bounds_test.go:9)	SUBQ	$24, SP
+	0x0004 00004 (bounds_test.go:9)	MOVQ	BP, 16(SP)
+	0x0009 00009 (bounds_test.go:9)	LEAQ	16(SP), BP
+	0x000e 00014 (bounds_test.go:9)	FUNCDATA	$0, gclocals·1a65e721a2ccc325b382662e7ffee780(SB)
+	0x000e 00014 (bounds_test.go:9)	FUNCDATA	$1, gclocals·69c1753bd5f81501d95132d08af04464(SB)
+	0x000e 00014 (bounds_test.go:11)	MOVQ	"".b+32(SP), DX
+	0x0013 00019 (bounds_test.go:11)	XORL	AX, AX
+	0x0015 00021 (bounds_test.go:11)	XORL	CX, CX
+	0x0017 00023 (bounds_test.go:11)	XORL	BX, BX
+	0x0019 00025 (bounds_test.go:11)	XORL	SI, SI
+	0x001b 00027 (bounds_test.go:11)	XORL	DI, DI
+	0x001d 00029 (bounds_test.go:11)	XORL	R8, R8
+	0x0020 00032 (bounds_test.go:11)	XORL	R9, R9
+	0x0023 00035 (bounds_test.go:11)	XORL	R10, R10
+	0x0026 00038 (bounds_test.go:11)	XORL	R11, R11
+	0x0029 00041 (bounds_test.go:11)	XORL	R12, R12
+	0x002c 00044 (bounds_test.go:11)	JMP	96
+	0x002e 00046 (bounds_test.go:11)	INCQ	AX
+	0x0031 00049 (bounds_test.go:20)	MOVQ	64(BX), CX
+	0x0035 00053 (bounds_test.go:22)	MOVQ	R13, BX
+	0x0038 00056 (bounds_test.go:22)	MOVQ	SI, R14
+	0x003b 00059 (bounds_test.go:22)	MOVQ	R12, SI
+	0x003e 00062 (bounds_test.go:22)	MOVQ	R14, R12
+	0x0041 00065 (bounds_test.go:22)	MOVQ	DI, R15
+	0x0044 00068 (bounds_test.go:22)	MOVQ	R11, DI
+	0x0047 00071 (bounds_test.go:22)	MOVQ	R15, R11
+	0x004a 00074 (bounds_test.go:22)	MOVQ	R8, R13
+	0x004d 00077 (bounds_test.go:22)	MOVQ	R10, R8
+	0x0050 00080 (bounds_test.go:22)	MOVQ	R13, R10
+	0x0053 00083 (bounds_test.go:22)	NOP
+	0x0060 00096 (bounds_test.go:11)	CMPQ	376(DX), AX
+	0x0067 00103 (bounds_test.go:11)	JLE	258
+	0x006d 00109 (bounds_test.go:12)	MOVQ	"".v+8(SB), CX
+	0x0074 00116 (bounds_test.go:12)	MOVQ	"".v(SB), BX
+	0x007b 00123 (bounds_test.go:12)	NOP
+	0x0080 00128 (bounds_test.go:12)	TESTQ	CX, CX
+	0x0083 00131 (bounds_test.go:12)	JLS	411
+	0x0089 00137 (bounds_test.go:12)	MOVQ	(BX), SI
+	0x008c 00140 (bounds_test.go:13)	CMPQ	CX, $1
+	0x0090 00144 (bounds_test.go:13)	JLS	401
+	0x0096 00150 (bounds_test.go:13)	MOVQ	8(BX), DI
+	0x009a 00154 (bounds_test.go:13)	NOP
+	0x00a0 00160 (bounds_test.go:14)	CMPQ	CX, $2
+	0x00a4 00164 (bounds_test.go:14)	JLS	391
+	0x00aa 00170 (bounds_test.go:14)	MOVQ	16(BX), R8
+	0x00ae 00174 (bounds_test.go:15)	CMPQ	CX, $3
+	0x00b2 00178 (bounds_test.go:15)	JLS	381
+	0x00b8 00184 (bounds_test.go:15)	MOVQ	24(BX), R9
+	0x00bc 00188 (bounds_test.go:15)	NOP
+	0x00c0 00192 (bounds_test.go:16)	CMPQ	CX, $4
+	0x00c4 00196 (bounds_test.go:16)	JLS	371
+	0x00ca 00202 (bounds_test.go:16)	MOVQ	32(BX), R10
+	0x00ce 00206 (bounds_test.go:17)	CMPQ	CX, $5
+	0x00d2 00210 (bounds_test.go:17)	JLS	361
+	0x00d8 00216 (bounds_test.go:17)	MOVQ	40(BX), R11
+	0x00dc 00220 (bounds_test.go:17)	NOP
+	0x00e0 00224 (bounds_test.go:18)	CMPQ	CX, $6
+	0x00e4 00228 (bounds_test.go:18)	JLS	351
+	0x00e6 00230 (bounds_test.go:18)	MOVQ	48(BX), R12
+	0x00ea 00234 (bounds_test.go:19)	CMPQ	CX, $7
+	0x00ee 00238 (bounds_test.go:19)	JLS	341
+	0x00f0 00240 (bounds_test.go:19)	MOVQ	56(BX), R13
+	0x00f4 00244 (bounds_test.go:20)	CMPQ	CX, $8
+	0x00f8 00248 (bounds_test.go:20)	JHI	46
+	0x00fe 00254 (bounds_test.go:20)	NOP
+	0x0100 00256 (bounds_test.go:20)	JMP	331
+	0x0102 00258 (bounds_test.go:22)	MOVQ	R12, "".A(SB)
+	0x0109 00265 (bounds_test.go:22)	MOVQ	R11, "".B(SB)
+	0x0110 00272 (bounds_test.go:22)	MOVQ	R10, "".C(SB)
+	0x0117 00279 (bounds_test.go:22)	MOVQ	R9, "".D(SB)
+	0x011e 00286 (bounds_test.go:22)	MOVQ	R8, "".E(SB)
+	0x0125 00293 (bounds_test.go:22)	MOVQ	DI, "".F(SB)
+	0x012c 00300 (bounds_test.go:22)	MOVQ	SI, "".G(SB)
+	0x0133 00307 (bounds_test.go:22)	MOVQ	BX, "".H(SB)
+	0x013a 00314 (bounds_test.go:22)	MOVQ	CX, "".I(SB)
+	0x0141 00321 (bounds_test.go:23)	MOVQ	16(SP), BP
+	0x0146 00326 (bounds_test.go:23)	ADDQ	$24, SP
+	0x014a 00330 (bounds_test.go:23)	RET
+	0x014b 00331 (bounds_test.go:20)	MOVL	$8, AX
+	0x0150 00336 (bounds_test.go:20)	PCDATA	$1, $1
+	0x0150 00336 (bounds_test.go:20)	CALL	runtime.panicIndex(SB)
+	0x0155 00341 (bounds_test.go:19)	MOVL	$7, AX
+	0x015a 00346 (bounds_test.go:19)	CALL	runtime.panicIndex(SB)
+	0x015f 00351 (bounds_test.go:18)	MOVL	$6, AX
+	0x0164 00356 (bounds_test.go:18)	CALL	runtime.panicIndex(SB)
+	0x0169 00361 (bounds_test.go:17)	MOVL	$5, AX
+	0x016e 00366 (bounds_test.go:17)	CALL	runtime.panicIndex(SB)
+	0x0173 00371 (bounds_test.go:16)	MOVL	$4, AX
+	0x0178 00376 (bounds_test.go:16)	CALL	runtime.panicIndex(SB)
+	0x017d 00381 (bounds_test.go:15)	MOVL	$3, AX
+	0x0182 00386 (bounds_test.go:15)	CALL	runtime.panicIndex(SB)
+	0x0187 00391 (bounds_test.go:14)	MOVL	$2, AX
+	0x018c 00396 (bounds_test.go:14)	CALL	runtime.panicIndex(SB)
+	0x0191 00401 (bounds_test.go:13)	MOVL	$1, AX
+	0x0196 00406 (bounds_test.go:13)	CALL	runtime.panicIndex(SB)
+	0x019b 00411 (bounds_test.go:12)	XORL	AX, AX
+	0x019d 00413 (bounds_test.go:12)	NOP
+	0x01a0 00416 (bounds_test.go:12)	CALL	runtime.panicIndex(SB)
+	0x01a5 00421 (bounds_test.go:12)	XCHGL	AX, AX
+
+	
+"".BenchmarkBoundsCheckOutOfOrder STEXT nosplit size=199 args=0x8 locals=0x18
+	0x0000 00000 (bounds_test.go:25)	TEXT	"".BenchmarkBoundsCheckOutOfOrder(SB), NOSPLIT|ABIInternal, $24-8
+	0x0000 00000 (bounds_test.go:25)	SUBQ	$24, SP
+	0x0004 00004 (bounds_test.go:25)	MOVQ	BP, 16(SP)
+	0x0009 00009 (bounds_test.go:25)	LEAQ	16(SP), BP
+	0x000e 00014 (bounds_test.go:25)	FUNCDATA	$0, gclocals·1a65e721a2ccc325b382662e7ffee780(SB)
+	0x000e 00014 (bounds_test.go:25)	FUNCDATA	$1, gclocals·69c1753bd5f81501d95132d08af04464(SB)
+	0x000e 00014 (bounds_test.go:27)	MOVQ	"".b+32(SP), DX
+	0x0013 00019 (bounds_test.go:27)	XORL	AX, AX
+	0x0015 00021 (bounds_test.go:27)	XORL	CX, CX
+	0x0017 00023 (bounds_test.go:27)	XORL	BX, BX
+	0x0019 00025 (bounds_test.go:27)	XORL	SI, SI
+	0x001b 00027 (bounds_test.go:27)	XORL	DI, DI
+	0x001d 00029 (bounds_test.go:27)	XORL	R8, R8
+	0x0020 00032 (bounds_test.go:27)	XORL	R9, R9
+	0x0023 00035 (bounds_test.go:27)	XORL	R10, R10
+	0x0026 00038 (bounds_test.go:27)	XORL	R11, R11
+	0x0029 00041 (bounds_test.go:27)	XORL	R12, R12
+	0x002c 00044 (bounds_test.go:27)	JMP	84
+	0x002e 00046 (bounds_test.go:27)	INCQ	AX
+	0x0031 00049 (bounds_test.go:28)	MOVQ	64(BX), CX
+	0x0035 00053 (bounds_test.go:29)	MOVQ	(BX), R12
+	0x0038 00056 (bounds_test.go:30)	MOVQ	8(BX), R11
+	0x003c 00060 (bounds_test.go:31)	MOVQ	16(BX), R10
+	0x0040 00064 (bounds_test.go:32)	MOVQ	24(BX), R9
+	0x0044 00068 (bounds_test.go:33)	MOVQ	32(BX), R8
+	0x0048 00072 (bounds_test.go:34)	MOVQ	40(BX), DI
+	0x004c 00076 (bounds_test.go:35)	MOVQ	48(BX), SI
+	0x0050 00080 (bounds_test.go:36)	MOVQ	56(BX), BX
+	0x0054 00084 (bounds_test.go:27)	CMPQ	376(DX), AX
+	0x005b 00091 (bounds_test.go:27)	JLE	115
+	0x005d 00093 (bounds_test.go:28)	MOVQ	"".v(SB), BX
+	0x0064 00100 (bounds_test.go:28)	MOVQ	"".v+8(SB), CX
+	0x006b 00107 (bounds_test.go:28)	CMPQ	CX, $8
+	0x006f 00111 (bounds_test.go:28)	JHI	46
+	0x0071 00113 (bounds_test.go:28)	JMP	188
+	0x0073 00115 (bounds_test.go:38)	MOVQ	R12, "".A(SB)
+	0x007a 00122 (bounds_test.go:38)	MOVQ	R11, "".B(SB)
+	0x0081 00129 (bounds_test.go:38)	MOVQ	R10, "".C(SB)
+	0x0088 00136 (bounds_test.go:38)	MOVQ	R9, "".D(SB)
+	0x008f 00143 (bounds_test.go:38)	MOVQ	R8, "".E(SB)
+	0x0096 00150 (bounds_test.go:38)	MOVQ	DI, "".F(SB)
+	0x009d 00157 (bounds_test.go:38)	MOVQ	SI, "".G(SB)
+	0x00a4 00164 (bounds_test.go:38)	MOVQ	BX, "".H(SB)
+	0x00ab 00171 (bounds_test.go:38)	MOVQ	CX, "".I(SB)
+	0x00b2 00178 (bounds_test.go:39)	MOVQ	16(SP), BP
+	0x00b7 00183 (bounds_test.go:39)	ADDQ	$24, SP
+	0x00bb 00187 (bounds_test.go:39)	RET
+	0x00bc 00188 (bounds_test.go:28)	MOVL	$8, AX
+	0x00c1 00193 (bounds_test.go:28)	PCDATA	$1, $1
+	0x00c1 00193 (bounds_test.go:28)	CALL	runtime.panicIndex(SB)
+	0x00c6 00198 (bounds_test.go:28)	XCHGL	AX, AX

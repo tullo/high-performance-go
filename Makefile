@@ -122,15 +122,15 @@ bench-startstop-reset:
 # =============================================================================
 
 escape-analysis-sum:	# -m = escape analysis decisions
-	go build -gcflags=-m examples/esc/sum.go
+	go build -gcflags=-m ./examples/esc/sum.go
 #	examples/esc/sum.go:22:13: inlining call to fmt.Println
 #	examples/esc/sum.go:8:17: make([]int, count) does not escape
 #	examples/esc/sum.go:22:13: answer escapes to heap
 #	examples/esc/sum.go:22:13: []interface {} literal does not escape
 	@echo
-	go build -gcflags='-m -m' examples/esc/sum.go 2>&1 | grep sum.go:22
+	go build -gcflags='-m -m' ./examples/esc/sum.go 2>&1 | grep sum.go:22
 	@echo
-	go build -gcflags=-m examples/esc/center.go
+	go build -gcflags=-m ./examples/esc/center.go
 	@echo
 	go test -run=none -bench=Sum ./examples/esc/
 
@@ -151,3 +151,14 @@ intrinsic-functions:	# code replacement with architecture native instructions
 	go test -bench=.  ./examples/popcnt-intrinsic/
 	@echo
 	bash asm.sh ./examples/counter/counter.go
+
+bounds-check-elimination:	# arrays & slices
+	go test -gcflags=-S -bench=BoundsCheck  ./examples/bounds/bounds_test.go 2>bounds-check.txt
+	@echo
+	@echo "BenchmarkBoundsCheckInOrder:"
+	@grep -v PCDATA bounds-check.txt | grep -v FUNCDATA \
+		| grep -A 99 "BenchmarkBoundsCheckInOrder(SB)" | grep "runtime.panicIndex(SB)"
+	@echo
+	@echo "BenchmarkBoundsCheckOutOfOrder:"
+	@grep -v PCDATA bounds-check.txt | grep -v FUNCDATA \
+		| grep -A 50 "BenchmarkBoundsCheckOutOfOrder(SB)" | grep "runtime.panicIndex(SB)"

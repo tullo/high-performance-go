@@ -863,9 +863,11 @@ Further reading:
 
 ## 3.7. Bounds check elimination
 
-Go is a bounds checked language. This means array and slice subscript operations are checked to ensure they are within the bounds of the respective types.
+Go is a bounds checked language.
 
-For arrays, this can be done at compile time. For slices, this must be done at runtime.
+This means `array and slice` **subscript operations are checked** to ensure they are within the bounds of the respective types.
+- For `arrays`, this can be done **at compile time**.
+- For `slices`, this must be done **at runtime**.
 
 ```go
 var v = make([]int, 9)
@@ -887,7 +889,28 @@ func BenchmarkBoundsCheckInOrder(b *testing.B) {
 	}
 	A, B, C, D, E, F, G, H, I = a, _b, c, d, e, f, g, h, i
 }
+/*
+go test -gcflags=-S -bench=BoundsCheckInOrder  ./examples/bounds/bounds_test.go 2>bounds-check.txt
 
+BenchmarkBoundsCheckInOrder:
+	grep -A 99 "BenchmarkBoundsCheckInOrder(SB)" bounds-check.txt | grep "runtime.panicIndex(SB)"
+
+	0x0150 00336 (bounds_test.go:20)	CALL	runtime.panicIndex(SB)
+	0x015a 00346 (bounds_test.go:19)	CALL	runtime.panicIndex(SB)
+	0x0164 00356 (bounds_test.go:18)	CALL	runtime.panicIndex(SB)
+	0x016e 00366 (bounds_test.go:17)	CALL	runtime.panicIndex(SB)
+	0x0178 00376 (bounds_test.go:16)	CALL	runtime.panicIndex(SB)
+	0x0182 00386 (bounds_test.go:15)	CALL	runtime.panicIndex(SB)
+	0x018c 00396 (bounds_test.go:14)	CALL	runtime.panicIndex(SB)
+	0x0196 00406 (bounds_test.go:13)	CALL	runtime.panicIndex(SB)
+	0x01a0 00416 (bounds_test.go:12)	CALL	runtime.panicIndex(SB)
+*/
+```
+
+How many bounds check operations are performed per loop?
+- `9`
+
+```go
 func BenchmarkBoundsCheckOutOfOrder(b *testing.B) {
 	var a, _b, c, d, e, f, g, h, i int
 	for n := 0; n < b.N; n++ {
@@ -903,32 +926,38 @@ func BenchmarkBoundsCheckOutOfOrder(b *testing.B) {
 	}
 	A, B, C, D, E, F, G, H, I = a, _b, c, d, e, f, g, h, i
 }
+/*
+BenchmarkBoundsCheckOutOfOrder:
+	grep -A 50 "BenchmarkBoundsCheckOutOfOrder(SB)" bounds-check.txt | grep "runtime.panicIndex(SB)"
 
-// go test -gcflags=-S -bench=BoundsCheckInOrder  ./examples/bounds/
-
-// How many bounds check operations are performed per loop?
+	0x00c1 00193 (bounds_test.go:28)	CALL	runtime.panicIndex(SB)
+*/
 ```
 
-```sh
-go test -bench=.  ./examples/bounds/
+How many bounds check operations are performed per loop?
+- `1`
 
-BenchmarkBoundsCheckInOrder-12       	471346575	         2.52 ns/op
-BenchmarkBoundsCheckOutOfOrder-12    	654611022	         1.82 ns/op
-```
+Does rearranging the order in which we assign the `A` through `I` affect the assembly?
+- `Yes. BenchmarkBoundsCheckOutOfOrder counts about 50 lines. BenchmarkBoundsCheckInOrder 101 lines.`
 
+----
 
 ### 3.7.1. Exercises
 
-What happens if v is moved inside the Benchmark function?
-
 ```sh
 go test -bench=.  ./examples/bounds/
 
-BenchmarkBoundsCheckInOrder-12       	1000000000	         0.266 ns/op
-BenchmarkBoundsCheckOutOfOrder-12    	1000000000	         0.256 ns/op
+BenchmarkBoundsCheckInOrder-12       	467205099	         2.51 ns/op
+BenchmarkBoundsCheckOutOfOrder-12    	655204875	         1.82 ns/op
 ```
 
-What happens if v was declared as an array, `var v [9]int`?
+What happens if `v` is moved inside the Benchmark function?
+- Both bench functions shrink to just about `34 lines` of assembly
+- They execute an `identical set of operations`. 
+
+What happens if `v` was declared as an **array**, `var v [9]int`?
+- Both bench functions shrink to just about `20 lines` of assembly
+- They execute an `identical set of operations`. 
 
 ```sh
 go test -bench=.  ./examples/bounds/
@@ -941,44 +970,81 @@ BenchmarkBoundsCheckOutOfOrder-12    	954235348	         1.26 ns/op
 
 ## 3.8. Compiler flags exercises
 
+Go Compiler flags are provided with: `go build -gcflags=$FLAGS`
+
 Investigate the operation of the following compiler functions:
 
 ```sh
-go test -gcflags=-S         # prints the (Go flavoured) assembly of the package being compiled.
+# -S prints the (Go flavoured) assembly of the package being compiled
+go test -gcflags=-S -bench=.  ./examples/bounds/bounds_test.go
 
+# -l controls the behaviour of the inliner
 go test -gcflags=-l         # disables inlining
 go test -gcflags='-l -l'    # increases it
 go test -gcflags='-l -l -l' # increases it even more
+go test -gcflags=-l=3 -bench=.  ./examples/bounds/bounds_test.go
 
-go test -gcflags=-m         # controls printing of optimisation decision
+
+# -m controls printing of optimisation decisions
+go test -gcflags=-m         # decisions about inlining, escape analysis
 go test -gcflags='-m -m'    # prints more details about what the compiler was thinking
+go test -gcflags=-m=2 -bench=.  ./examples/bounds/bounds_test.go
+/tmp/go-build311532646/b001/_testmain.go:43:24: inlining call to testing.MainStart
+/tmp/go-build311532646/b001/_testmain.go:43:42: testdeps.TestDeps literal escapes to heap
 
-go test -gcflags='-l -N'    # disables all optimisations
 
-go test -gcflags=-d=ssa/prove/debug=on  # this also takes values of 2 and above, see what prints
+# -l -N disables all optimisations
+go test -gcflags='-l -N' -bench=.  ./examples/bounds/bounds_test.go
+BenchmarkBoundsCheckInOrder-12       	248479110	         4.76 ns/op
+BenchmarkBoundsCheckOutOfOrder-12    	249909540	         4.84 ns/op
 
-go test -gcflags=
 
 # go tool compile -d help
+go test -gcflags=-d=checkptr=2 -bench=.  ./examples/bounds/
+
+go test -gcflags=-d=nil -bench=.  ./examples/bounds/
+examples/bounds/bounds_test.go:11:19: removed nil check
+
+go test -gcflags=-d=wb -bench=.  ./examples/bounds/
+/tmp/go-build551952088/b001/_testmain.go:36:22: write barrier
+
+go test -gcflags=-d=export -bench=.  ./examples/bounds/
+BenchmarkExportSize:main 1 57 bytes
+
+# go tool compile -d=ssa/help
 # go tool compile -d=ssa/<phase>/<flag>[=<value>|<function_name>]
+# go tool compile -d=ssa/prove/debug=2	=> sets debugging level to 2 in the prove pass
+# this also takes values of 2 and above
 # go test -gcflags=-d=ssa/prove/debug=on -bench=.  ./examples/bounds/bounds_test.go
-go test -gcflags=-d=ssa/prove/debug=2 -bench=.  ./examples/bounds/bounds_test.go
+# 'prove pass' debuging
+go test -gcflags=-d=ssa/prove/debug=2 -bench=.  ./examples/bounds/
 
-examples/bounds/bounds_test.go:14:19: Induction variable: limits [0,?), increment 1
-examples/bounds/bounds_test.go:32:19: Induction variable: limits [0,?), increment 1
-
-BenchmarkBoundsCheckInOrder-12       	1000000000	         0.256 ns/op
-BenchmarkBoundsCheckOutOfOrder-12    	1000000000	         0.252 ns/op
-
-# Disassembler
-# https://go-talks.appspot.com/github.com/rakyll/talks/gcinspect/talk.slide#5
-# go tool objdump -s main.main hello
-# GOSSAFUNC=main go build && open ssa.html
-# go build -gcflags="-S"
-# go build -gcflags="-m" golang.org/x/net/context
-# go build -gcflags="-l -N"
-# go build -x
+bounds_test.go:29:9: Proved IsInBounds (v29)
+bounds_test.go:30:10: Proved IsInBounds (v40)
+bounds_test.go:31:9: Proved IsInBounds (v51)
+bounds_test.go:32:9: Proved IsInBounds (v62)
+bounds_test.go:33:9: Proved IsInBounds (v73)
+bounds_test.go:34:9: Proved IsInBounds (v84)
+bounds_test.go:35:9: Proved IsInBounds (v95)
+bounds_test.go:36:9: Proved IsInBounds (v106)
 ```
+
+### 3.8.1 Disassembler
+
+[Codegen Inspection](https://go-talks.appspot.com/github.com/rakyll/talks/gcinspect/talk.slide#5) @rakyll
+
+- Disassembler
+  - What goes into the **final binary** or **library**?
+  - What else is **generated** for a **specific arch**?
+  - Is a specific instruction being used for an optimization?
+  - `go tool objdump -s main.main hello`
+- Symbols
+  - What does the linker eliminate?
+  - `go tool nm hello`
+- Optimizations
+  - Which SSA optimization passes do the compiler apply?
+  - How is my code being optimized?
+  - `GOSSAFUNC=main go build && open ssa.html`
 
 ----
 
