@@ -284,27 +284,34 @@ The **trace profile** offers timing resolution down to the `microsecond level`.
 
 ## 4.5 Using more than one CPU
 
-Mandelbrot generation is known as embarassingly_parallel. Each pixel is independant of any other, they could all be computed in parallel. So, let’s try that.
+We saw from the previous trace that the **program is running sequentially** and not taking advantage of the other CPUs on this machine.
+
+Mandelbrot generation is known as embarassingly_parallel. **Each pixel is independant** of any other, they could all be computed in parallel. So, let’s try that.
 
 ```sh
 time ./mandelbrot -mode px
-2020/12/20 00:04:16 profile: trace enabled, trace.out
-2020/12/20 00:04:17 profile: trace disabled, trace.out
+profile: trace enabled, trace.out
+profile: trace disabled, trace.out
 
-real	0m1,391s
-user	0m7,336s
-sys	0m0,301s
+real	0m1,311s
+user	0m7,682s
+sys	0m0,266s
 ```
 
-So the runtime was basically the same. There was more user time, which makes sense, we were using all the CPUs, but the real `(wall clock)` time was about the same.
-
-As you can see this trace generated much more data.
-- It looks like lots of work is being done, but if you zoom right in, there are gaps. This is believed to be the scheduler.
-- While we’re using all four cores, because each fillPixel is a relatively small amount of work, we’re spending a lot of time in scheduling overhead.
+So the runtime was basically the same.
+- There was **more user time**, which makes sense, we were using all the CPUs
+- The real `(wall clock)` time was about the same.
 
 ```sh
 go tool trace trace.out
 ```
+
+As you can see this trace generated much more data - **`40M trace.out`**.
+- It looks like lots of work is being done, but if you zoom right in, **there are gaps**.
+- This is believed to be **the scheduler**.
+- While we're using all four cores, because each `fillPixel` is a relatively **small amount of work**, we're spending a lot of time in **scheduling overhead**.
+
+----
 
 ## 4.6 Batching up work
 
