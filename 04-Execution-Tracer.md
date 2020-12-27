@@ -263,6 +263,8 @@ The execution tracer is reusing a lot of the profile visualisation infrastructur
 
 We can see from the trace that the program is **only using one cpu**.
 
+This isn’t a surprise, by default mandelbrot.go calls `fillPixel` **for each pixel** in each row in sequence.
+
 ```go
 func seqFillImg(m *img) {
 	for i, row := range m.m {
@@ -273,11 +275,10 @@ func seqFillImg(m *img) {
 }
 ```
 
-This isn’t a surprise, by default mandelbrot.go calls fillPixel for each pixel in each row in sequence.
+Once the image is painted, the execution switches to writing the .png file. This generates garbage on the heap, and so the trace changes at that point, we can see the classic saw tooth pattern of a garbage collected heap.
 
-Once the image is painted, see the execution switches to writing the .png file. This generates garbage on the heap, and so the trace changes at that point, we can see the classic saw tooth pattern of a garbage collected heap.
-
-The trace profile offers timing resolution down to the microsecond level. This is something you just can’t get with external profiling.
+The **trace profile** offers timing resolution down to the `microsecond level`.
+- This is something you just can't get with **external profiling**.
 
 ----
 
