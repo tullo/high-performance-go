@@ -189,3 +189,7 @@ mandelbrot-trace-mode-px:	# parallel execution
 	cd examples/mandelbrot-trace ; time ./mandelbrot-trace -mode px
 	go tool trace ./examples/mandelbrot-trace/trace.out
 #	trace.out = 40M !
+
+mandelbrot-trace-mode-row:	# parallel execution
+	cd examples/mandelbrot-trace ; time ./mandelbrot-trace -mode row
+	go tool trace ./examples/mandelbrot-trace/trace.out

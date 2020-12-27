@@ -322,14 +322,15 @@ Instead, let’s try processing one row per goroutine.
 ```sh
 time ./mandelbrot -mode row
 
-2020/12/20 00:19:20 profile: trace enabled, trace.out
-2020/12/20 00:19:21 profile: trace disabled, trace.out
+profile: trace enabled, trace.out
+profile: trace disabled, trace.out
 
-real	0m0,336s
-user	0m1,733s
-sys	0m0,009s
+real	0m0,333s
+user	0m1,705s
+sys	0m0,008s
 ```
-This looks like a good improvement, we almost halved the runtime of the program. Let’s look at the trace.
+
+This looks like a good improvement, we almost halved the runtime of the program. Let's look at the trace.
 
 ```sh
 go tool trace trace.out
@@ -337,8 +338,11 @@ go tool trace trace.out
 
 
 As you can see the trace is now smaller and easier to work with. We get to see the whole trace in span, which is a nice bonus.
-- At the start of the program we see the number of goroutines ramp up to around 1,000. This is an improvement over the 1 << 20 that we saw in the previous trace.
-- Zooming in we see onePerRowFillImg runs for longer, and as the goroutine producing work is done early, the scheduler efficiently works through the remaining runnable goroutines.
+- At the start of the program we see the number of **goroutines ramp up to around 1,000**.
+   - This is an improvement over the 1 << 20 that we saw in the previous trace.
+- Zooming in we see `onePerRowFillImg` **runs for longer**, and as the goroutine producing work is done early, **the scheduler efficiently works through the remaining runnable goroutines**.
+
+----
 
 ## 4.7 Using workers
 
