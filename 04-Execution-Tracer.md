@@ -28,6 +28,8 @@ Dave Cheney dave@cheney.net (v379996b, 2019-07-24)
 The execution tracer is integrated into the Go runtime.
 - It does know `what` a Go program is doing at a particular point in time `and why`.
 
+----
+
 ## 4.1 What is the execution tracer, why do we need it?
 
 I think it is easiest to explain what the execution tracer does, and why it's important by looking at a piece of code where the `pprof, go tool pprof` performs poorly.
@@ -44,9 +46,13 @@ If we build it, then run it, it generates something like this
 
 ![](examples/mandelbrot/mandelbrot.png)
 
+----
+
 ### 4.1.1. How long does it take?
 
 So, how long does this program take to generate a 1024 x 1024 pixel image?
+
+The simplest way I know how to do this:
 
 ```sh
 time ./mandelbrot
@@ -55,6 +61,10 @@ real	0m1,531s
 user	0m1,539s
 sys	0m0,000s
 ```
+
+> Don't use `time go run mandebrot.go` or you'll time how long it takes to compile the program as well as run it.
+
+----
 
 ### 4.1.2. What is the program doing?
 

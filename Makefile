@@ -169,3 +169,6 @@ bounds-check-elimination:	# arrays & slices
 
 mandelbrot:
 	cd examples/mandelbrot ; go build && ./mandelbrot
+
+mandelbrot-timer:
+	cd examples/mandelbrot ; time ./mandelbrot
