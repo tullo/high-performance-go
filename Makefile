@@ -162,3 +162,10 @@ bounds-check-elimination:	# arrays & slices
 	@echo "BenchmarkBoundsCheckOutOfOrder:"
 	@grep -v PCDATA bounds-check.txt | grep -v FUNCDATA \
 		| grep -A 50 "BenchmarkBoundsCheckOutOfOrder(SB)" | grep "runtime.panicIndex(SB)"
+
+# =============================================================================
+# === EXECUTION TRACERS =======================================================
+# =============================================================================
+
+mandelbrot:
+	cd examples/mandelbrot ; go build && ./mandelbrot

@@ -25,18 +25,24 @@ Dave Cheney dave@cheney.net (v379996b, 2019-07-24)
 
 # 4. Execution Tracer
 
-https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html#execution-tracer
-
-Unlike sample based profiling, the execution tracer is integrated into the Go runtime, so it does just know what a Go program is doing at a particular point in time.
+The execution tracer is integrated into the Go runtime.
+- It does know `what` a Go program is doing at a particular point in time `and why`.
 
 ## 4.1 What is the execution tracer, why do we need it?
 
-I think its easiest to explain what the execution tracer does, and why it’s important by looking at a piece of code where the `pprof, go tool pprof` performs poorly.
+I think it is easiest to explain what the execution tracer does, and why it's important by looking at a piece of code where the `pprof, go tool pprof` performs poorly.
+
+The `examples/mandelbrot` directory contains a simple mandelbrot generator.
+
+This code is derived from Francesc Campoy’s [mandelbrot package](https://github.com/campoy/mandelbrot).
 
 ```sh
 cd examples/mandelbrot
 go build && ./mandelbrot
 ```
+If we build it, then run it, it generates something like this
+
+![](examples/mandelbrot/mandelbrot.png)
 
 ### 4.1.1. How long does it take?
 
