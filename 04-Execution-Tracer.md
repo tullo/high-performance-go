@@ -128,8 +128,8 @@ If we run this version, we get a profile written to the current working director
 ```sh
 go run mandelbrot.go
 
-2020/12/19 profile: cpu profiling enabled, cpu.pprof
-2020/12/19 profile: cpu profiling disabled, cpu.pprof
+profile: cpu profiling enabled, cpu.pprof
+profile: cpu profiling disabled, cpu.pprof
 # ls
   2085 dec 19 cpu.pprof
   2728 dec 19 mandelbrot.go
@@ -204,13 +204,17 @@ go tool pprof -http=:8080 cpu.pprof
 
 ## 4.4 Tracing vs Profiling
 
-Profiling told us what the profiler saw; fillPixel was doing all the work. There didn’t look like there was much that could be done about that.
+Hopefully this example shows the limitations of profiling. 
 
-So now it’s a good time to introduce the execution tracer which gives a different view of the same program.
+Profiling told us what the profiler saw; `fillPixel` was doing all the work. There didn’t look like there was much that could be done about that.
+
+So now it’s a good time to introduce the **execution tracer** which gives a **different view** of the same program.
+
+----
 
 ### 4.4.1. Using the execution tracer
 
-Using the tracer is as simple as asking for a profile.TraceProfile, nothing else changes.
+Using the tracer is as simple as asking for a `profile.TraceProfile`, nothing else changes.
 
 ```sh
 import "github.com/pkg/profile"
@@ -220,34 +224,40 @@ func main() {
 }
 ```
 
+When we run the program, we get a `trace.out` file in the current working directory.
+
 ```sh
 cd mandelbrot-trace && go build mandelbrot.go
 
 time ./mandelbrot
-2020/12/19 23:37:53 profile: trace enabled, trace.out
-2020/12/19 23:37:54 profile: trace disabled, trace.out
+profile: trace enabled, trace.out
+profile: trace disabled, trace.out
 
 real	0m1,528s
 user	0m1,522s
 sys	0m0,016s
 ```
 
-Just like pprof, there is a tool in the go command to analyse the trace.
+Just like pprof, there is a tool in the `go` command to analyse the trace.
 
 ```sh
 go tool trace trace.out
 
-2020/12/19 23:39:35 Parsing trace...
-2020/12/19 23:39:35 Splitting trace...
-2020/12/19 23:39:35 Opening browser. Trace viewer is listening on http://127.0.0.1:41377
-
+Parsing trace...
+Splitting trace...
+Opening browser. Trace viewer is listening on http://127.0.0.1:41377
 ```
 
-The execution tracer is reusing a lot of the profile visualisation infrastructure built into Chrome.
+The execution tracer is reusing a lot of the profile visualisation infrastructure built into **Chrome**.
+
+- `go tool trace` acts as a server to **translate the raw execution trace** into data which Chome can display natively.
 
 - Because this is a Google product, it supports keyboard shortcuts; use `WASD` to navigate, use `?` to get a list.
-- Viewing traces can take a lot of memory. Seriously, 4Gb won’t cut it, 8Gb is probably the minimum, more is definitely better.
-- The tool uses the javascript debugging support built into Chrome. Trace profiles can only be viewed in Chrome, they won’t work in Firefox, Safari, IE/Edge.
+- Viewing traces can take a lot of memory. Seriously, 4Gb won't cut it, 8Gb is probably the minimum, more is definitely better.
+- The tool uses the javascript debugging support built into Chrome.
+- Trace profiles can only be viewed in Chrome, they won’t work in Firefox, Safari, IE/Edge.
+
+----
 
 ### 4.4.2. Analysing the trace
 

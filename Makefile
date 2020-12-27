@@ -177,5 +177,10 @@ mandelbrot-runtime-pprof:
 	cd examples/mandelbrot-runtime-pprof ; go run mandelbrot.go > cpu.pprof
 
 mandelbrot-pkg-profile:
-	cd examples/mandelbrot-pkg-profile ; go run mandelbrot.go > cpu.pprof
+	cd examples/mandelbrot-pkg-profile ; go run mandelbrot.go
 	go tool pprof -http=:8080 ./examples/mandelbrot-pkg-profile/cpu.pprof
+
+mandelbrot-trace:			# tracer
+	cd examples/mandelbrot-trace ; go build
+	cd examples/mandelbrot-trace ; time ./mandelbrot-trace
+	go tool trace ./examples/mandelbrot-trace/trace.out
