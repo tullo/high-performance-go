@@ -62,27 +62,29 @@ user	0m1,539s
 sys	0m0,000s
 ```
 
-> Don't use `time go run mandebrot.go` or you'll time how long it takes to compile the program as well as run it.
+> Don't use **time go run mandebrot.go** or you'll time how long it takes to compile the program as well as run it.
 
 ----
 
 ### 4.1.2. What is the program doing?
 
-So, in this example the program took 1.6 seconds to generate the mandelbrot and write to to a png.
+So, in this example the program took **1.5 seconds** to generate the mandelbrot and write to a png.
 
-Is that good? Could we make it faster?
+- Is that good?
+- Could we make it faster?
 
-One way to answer that question would be to use Go’s built in pprof support to profile the program.
+One way to answer that question would be to use Go's built in `pprof` support to profile the program.
 
 ## 4.2 Generating the profile
 
 To turn generate a profile we need to either
+
 - Use the `runtime/pprof` package directly.
 - Use a wrapper like `github.com/pkg/profile` to automate this.
 
 ## 4.3 Generating a profile with runtime/pprof
 
-To show you that there’s no magic, let’s modify the program to write a CPU profile to os.Stdout.
+To show you that there's no magic, let's modify the program to write a **CPU profile** to `os.Stdout`.
 
 ```go
 import "runtime/pprof"
@@ -93,12 +95,16 @@ func main() {
 }
 ```
 
-By adding this code to the top of the main function, this program will write a profile to os.Stdout.
+By adding this code to the top of the main function, this program will write a profile to `os.Stdout`.
 
 ```sh
 cd examples/mandelbrot-runtime-pprof
 go run mandelbrot.go > cpu.pprof # okay here as well
 ```
+
+> We can use `go run` in this case because the cpu profile will only include the execution of `mandelbrot.go`, not its compilation. 
+
+----
 
 ### 4.3.1. Generating a profile with github.com/pkg/profile
 

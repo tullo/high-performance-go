@@ -172,3 +172,6 @@ mandelbrot:
 
 mandelbrot-timer:
 	cd examples/mandelbrot ; time ./mandelbrot
+
+mandelbrot-runtime-pprof:
+	cd examples/mandelbrot-runtime-pprof ; go run mandelbrot.go > cpu.pprof
