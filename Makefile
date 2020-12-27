@@ -178,3 +178,4 @@ mandelbrot-runtime-pprof:
 
 mandelbrot-pkg-profile:
 	cd examples/mandelbrot-pkg-profile ; go run mandelbrot.go > cpu.pprof
+	go tool pprof -http=:8080 ./examples/mandelbrot-pkg-profile/cpu.pprof

@@ -142,17 +142,28 @@ go run mandelbrot.go
 
 ### 4.3.2. Analysing the profile
 
+Now we have a profile, we can use `go tool pprof` to analyse it.
+
+```sh
+go tool pprof cpu.pprof
+```
+
 > Since Go 1.9 the pprof trace contains all the information you need to analyse the trace.
 >
 > You no longer need to also have the matching binary which produced the trace. 🎉
 
-We can also see that pprof only captured data for 1.70 seconds, as pprof is sample based, relying on the operating system’s SIGPROF timer.
+We can use the `top` pprof function to sort functions recorded by the trace.
+
+- In this run we see that the program ran for 1.70s seconds - `profiling adds a small overhead`.
+- We can also see that **pprof** only captured data for 1.51 seconds
+- That is because pprof is **sample based**, relying on the operating system's `SIGPROF` timer.
+
 
 ```sh
 go tool pprof cpu.pprof
 File: mandelbrot
 Type: cpu
-Time: Dec 19, 2020 at 10:46pm (CET)
+Time: Dec 19, 2020
 Duration: 1.70s, Total samples = 1.51s (88.64%)
 (pprof) top
 Showing nodes accounting for 1.50s, 99.34% of 1.51s total
@@ -161,8 +172,13 @@ Showing top 10 nodes out of 30
      1.31s 86.75% 86.75%      1.31s 86.75%  main.fillPixel
      0.03s  1.99% 88.74%      0.06s  3.97%  compress/flate.(*compressor).findMatch
      0.03s  1.99% 90.73%      0.03s  1.99%  compress/flate.matchLen
-# We see that the main.fillPixel function was on the CPU the most when pprof captured the stack.
+```
 
+We see that the `main.fillPixel` function was **on the CPU the most** when pprof captured the stack.
+
+We can also add the `cummulative` flag to `top`.
+
+```sh
 (pprof) top5 -cum
 Showing nodes accounting for 1310ms, 86.75% of 1510ms total
 Showing top 5 nodes out of 30
@@ -172,13 +188,17 @@ Showing top 5 nodes out of 30
     1310ms 86.75% 86.75%     1310ms 86.75%  main.fillPixel
          0     0% 86.75%     1310ms 86.75%  main.seqFillImg
          0     0% 86.75%      190ms 12.58%  image/png.(*Encoder).Encode
-# This is sort of suggesting that main.fillPixed is actually doing most of the work.
 ```
 
+This is sort of suggesting that `main.fillPixed` is actually **doing most of the work**.
+
+You can also visualise the profile in a **web browser**:
+
 ```sh
-# You can also visualise the profile in a web browser
 go tool pprof -http=:8080 cpu.pprof
 ```
+
+![](examples/mandelbrot-pkg-profile/cpu.png)
 
 ----
 
