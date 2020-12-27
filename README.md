@@ -5,6 +5,7 @@ Notes taken while running through the workshop slides.
 1. [Benchmarking](01-Benchmarking.md)
 1. [Performance measurement and profiling](02-Performance-measurement-and-profiling.md)
 1. [Compiler optimisations](03-Compiler-optimisations.md)
+1. [Execution Tracer](04-Execution-Tracer.md)
 
 ## Credit
 
