@@ -339,44 +339,54 @@ go tool trace trace.out
 
 As you can see the trace is now smaller and easier to work with. We get to see the whole trace in span, which is a nice bonus.
 - At the start of the program we see the number of **goroutines ramp up to around 1,000**.
-   - This is an improvement over the 1 << 20 that we saw in the previous trace.
+   - This is an improvement over the `1 << 20` (1024×1024) that we saw in the previous trace.
 - Zooming in we see `onePerRowFillImg` **runs for longer**, and as the goroutine producing work is done early, **the scheduler efficiently works through the remaining runnable goroutines**.
 
 ----
 
 ## 4.7 Using workers
 
+`mandelbrot.go` supports one other mode, let's try it.
+
 ```sh
 time ./mandelbrot -mode workers
 
-2020/12/20 00:28:07 profile: trace enabled, trace.out
-2020/12/20 00:28:09 profile: trace disabled, trace.out
+profile: trace enabled, trace.out
+profile: trace disabled, trace.out
 
-real	0m1,552s
-user	0m1,545s
-sys	0m0,012s
+real	0m1,528s
+user	0m1,533s
+sys	0m0,000s
 ```
 
-Looking at the trace you can see that with only one worker process the producer and consumer tend to alternate because there is only one worker and one consumer. Let’s increase the number of workers
+So, the **runtime was much worse than any previous**.
+
+Let's look at the trace and see if we can figure out what happened.
+
+Looking at the trace you can see that with `only one worker process` the **producer and consumer** tend to alternate because there is only one worker and one consumer.
+
+Let's increase the number of workers.
 
 ```sh
 time ./mandelbrot -mode workers -workers 4
-2020/12/20 00:31:05 profile: trace enabled, trace.out
-2020/12/20 00:31:06 profile: trace disabled, trace.out
+profile: trace enabled, trace.out
+profile: trace disabled, trace.out
 
-real	0m0,557s
-user	0m1,586s
-sys	0m0,008s
+real	0m0,537s
+user	0m1,539s
+sys	0m0,012s
 ```
 
-That trace is a mess. There were more workers available, but the seemed to spend all their time fighting over the work to do.
+That trace is a mess. There were more workers available, but they seemed to spend all their time fighting over the work to do.
 
-This is because the channel is **unbuffered**. An unbuffered channel cannot send until there is someone ready to receive.
-- The producer cannot send work until there is a worker ready to receive it.
-- Workers cannot receive work until there is someone ready to send, so they compete with each other when they are waiting.
-- The sender is not privileged, it cannot take priority over a worker that is already running.
+This is because the channel is **unbuffered**. `An unbuffered channel cannot send` until there is someone ready to receive.
+- `The producer cannot send work` until there is a worker ready to receive it.
+- `Workers cannot receive work` until there is someone ready to send, so they compete with each other when they are waiting.
+- The **sender is not privileged**, it cannot take priority over a worker that is already running.
 
-What we see here is **a lot of latency introduced by the unbuffered channel**. There are lots of stops and starts inside the scheduler, and potentially locks and mutexes while waiting for work, this is why we see the sys time higher.
+What we see here is **a lot of `latency` introduced by the `unbuffered channel`**. 
+
+There are **lots of stops and starts inside the scheduler**, and potentially locks and mutexes while waiting for work, this is why we see the `sys` time higher.
 
 ----
 

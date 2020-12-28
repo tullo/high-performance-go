@@ -180,16 +180,26 @@ mandelbrot-pkg-profile:
 	cd examples/mandelbrot-pkg-profile ; go run mandelbrot.go
 	go tool pprof -http=:8080 ./examples/mandelbrot-pkg-profile/cpu.pprof
 
-mandelbrot-trace:			# sequential execution
+mandelbrot-trace:				# sequential execution
 	cd examples/mandelbrot-trace ; go build
 	cd examples/mandelbrot-trace ; time ./mandelbrot-trace
 	go tool trace ./examples/mandelbrot-trace/trace.out
+#	47K trace.out				Gs: 1
 
-mandelbrot-trace-mode-px:	# parallel execution
+mandelbrot-trace-mode-px:		# parallel execution
+	cd examples/mandelbrot-trace ; go build
 	cd examples/mandelbrot-trace ; time ./mandelbrot-trace -mode px
 	go tool trace ./examples/mandelbrot-trace/trace.out
-#	trace.out = 40M !
+#	40M trace.out !				Gs: 1<<20 (1024×1024)
 
-mandelbrot-trace-mode-row:	# parallel execution
+mandelbrot-trace-mode-row:		# parallel execution
+	cd examples/mandelbrot-trace ; go build
 	cd examples/mandelbrot-trace ; time ./mandelbrot-trace -mode row
 	go tool trace ./examples/mandelbrot-trace/trace.out
+#	64K trace.out				Gs: 1<<10 (1024)
+
+mandelbrot-trace-mode-workers:	# parallel execution
+	cd examples/mandelbrot-trace ; go build
+	cd examples/mandelbrot-trace ; time ./mandelbrot-trace -mode workers -workers 4
+	go tool trace ./examples/mandelbrot-trace/trace.out
+#	48K trace.out				Gs: 1<<10 (1024)

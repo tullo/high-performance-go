@@ -47,10 +47,13 @@ func main() {
 
 	switch *mode {
 	case "seq":
+		// 1 G
 		seqFillImg(img)
 	case "px":
+		// (height x width) 1'048'576 G's	=> 1024 * 1024 (1<<20)
 		oneToOneFillImg(img)
 	case "row":
+		// (width) 1024 G's	=> (1<<10)
 		onePerRowFillImg(img)
 	case "workers":
 		nWorkersFillImg(img, *workers)
@@ -73,7 +76,7 @@ func (m *img) At(x, y int) color.Color { return m.m[x][y] }
 func (m *img) ColorModel() color.Model { return color.RGBAModel }
 func (m *img) Bounds() image.Rectangle { return image.Rect(0, 0, m.h, m.w) }
 
-// tag::seqfillimg[]
+// sequential
 func seqFillImg(m *img) {
 	for i, row := range m.m {
 		for j := range row {
@@ -82,14 +85,13 @@ func seqFillImg(m *img) {
 	}
 }
 
-// end::seqfillimg[]
-
+// one goroutine per pixel
 func oneToOneFillImg(m *img) {
 	var wg sync.WaitGroup
-	wg.Add(m.h * m.w)
+	wg.Add(m.h * m.w) // 1024 * 1024 (1<<20)
 	for i, row := range m.m {
 		for j := range row {
-			go func(i, j int) {
+			go func(i, j int) { // 1G => 1 pixel
 				fillPixel(m, i, j)
 				wg.Done()
 			}(i, j)
@@ -98,11 +100,12 @@ func oneToOneFillImg(m *img) {
 	wg.Wait()
 }
 
+// one goroutine per row of pixels
 func onePerRowFillImg(m *img) {
 	var wg sync.WaitGroup
-	wg.Add(m.h)
+	wg.Add(m.h) // 1024 (1<<10)
 	for i := range m.m {
-		go func(i int) {
+		go func(i int) { // 1G => 1024 pixels (row)
 			for j := range m.m[i] {
 				fillPixel(m, i, j)
 			}
@@ -115,11 +118,11 @@ func onePerRowFillImg(m *img) {
 func nWorkersFillImg(m *img, workers int) {
 	c := make(chan int, 1024)
 	var wg sync.WaitGroup
-	wg.Add(workers)
-	for i := 0; i < workers; i++ {
+	wg.Add(workers)                // 1 (default)
+	for i := 0; i < workers; i++ { // G: (1 * workers)
 		go func() {
-			for i := range c {
-				for j := range m.m[i] {
+			for i := range c { // channel (row)
+				for j := range m.m[i] { // col
 					fillPixel(m, i, j)
 				}
 			}
