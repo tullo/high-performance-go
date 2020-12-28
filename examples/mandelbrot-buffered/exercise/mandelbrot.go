@@ -47,13 +47,10 @@ func main() {
 
 	switch *mode {
 	case "seq":
-		// 1 G
 		seqFillImg(img)
 	case "px":
-		// (height x width) 1'048'576 G's	=> 1024 * 1024 (1<<20)
 		oneToOneFillImg(img)
 	case "row":
-		// (width) 1024 G's	=> (1<<10)
 		onePerRowFillImg(img)
 	case "workers":
 		nWorkersFillImg(img, *workers)
@@ -76,7 +73,6 @@ func (m *img) At(x, y int) color.Color { return m.m[x][y] }
 func (m *img) ColorModel() color.Model { return color.RGBAModel }
 func (m *img) Bounds() image.Rectangle { return image.Rect(0, 0, m.h, m.w) }
 
-// sequential
 func seqFillImg(m *img) {
 	for i, row := range m.m {
 		for j := range row {
@@ -85,13 +81,12 @@ func seqFillImg(m *img) {
 	}
 }
 
-// one goroutine per pixel
 func oneToOneFillImg(m *img) {
 	var wg sync.WaitGroup
-	wg.Add(m.h * m.w) // 1024 * 1024 (1<<20)
+	wg.Add(m.h * m.w)
 	for i, row := range m.m {
 		for j := range row {
-			go func(i, j int) { // 1G => 1 pixel
+			go func(i, j int) {
 				fillPixel(m, i, j)
 				wg.Done()
 			}(i, j)
@@ -100,12 +95,11 @@ func oneToOneFillImg(m *img) {
 	wg.Wait()
 }
 
-// one goroutine per row of pixels
 func onePerRowFillImg(m *img) {
 	var wg sync.WaitGroup
-	wg.Add(m.h) // 1024 (1<<10)
+	wg.Add(m.h)
 	for i := range m.m {
-		go func(i int) { // 1G => 1024 pixels (row)
+		go func(i int) {
 			for j := range m.m[i] {
 				fillPixel(m, i, j)
 			}
@@ -116,24 +110,23 @@ func onePerRowFillImg(m *img) {
 }
 
 func nWorkersFillImg(m *img, workers int) {
-	c := make(chan int, 1024) // buffer to small
+	c := make(chan int, m.h) // buffer size: height (rows)
 	var wg sync.WaitGroup
 	wg.Add(workers)
 	// Launch worker G's
-	for i := 0; i < workers; i++ { // G: (1 * workers)
+	for i := 0; i < workers; i++ {
 		go func() {
-			for i := range c { // channel (row)
-				for j := range m.m[i] { // col
+			defer wg.Done()
+			for i := range c {
+				// fill one row of pixels
+				for j := range m.m[i] {
 					fillPixel(m, i, j)
 				}
 			}
-			wg.Done()
 		}()
 	}
 
-	// Producer fills channel with 1024 work items and blocks;
-	// waiting for workers to pull items of the channel and
-	// create room for more work items until done.
+	// Producer fills up the channel without blocking.
 	for i := range m.m {
 		c <- i
 	}

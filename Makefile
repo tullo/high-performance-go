@@ -202,4 +202,16 @@ mandelbrot-trace-mode-workers:	# parallel execution
 	cd examples/mandelbrot-trace ; go build
 	cd examples/mandelbrot-trace ; time ./mandelbrot-trace -mode workers -workers 4
 	go tool trace ./examples/mandelbrot-trace/trace.out
-#	48K trace.out				Gs: 1<<10 (1024)
+#	48K trace.out				Gs: 4, channel buffer size: 1<<10 (1024)
+
+mandelbrot-buffered-mode-workers:	# parallel execution
+	cd examples/mandelbrot-buffered ; go build
+	cd examples/mandelbrot-buffered ; time ./mandelbrot-buffered -mode workers -workers 4
+	go tool trace ./examples/mandelbrot-buffered/trace.out
+#	59K trace.out				Gs: 4, channel buffer size: 1<<20 (1024×1024)
+
+mandelbrot-buffered-mode-workers-per-row:	# parallel execution
+	cd examples/mandelbrot-buffered/exercise ; go build
+	cd examples/mandelbrot-buffered/exercise ; time ./exercise -mode workers -workers 4
+	go tool trace ./examples/mandelbrot-buffered/exercise/trace.out
+#	48K trace.out				Gs: 4, channel buffer size: 1<<10 (1024)

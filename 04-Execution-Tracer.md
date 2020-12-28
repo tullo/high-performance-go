@@ -236,6 +236,7 @@ profile: trace disabled, trace.out
 real	0m1,528s
 user	0m1,522s
 sys	0m0,016s
+# Gs: 1
 ```
 
 Just like pprof, there is a tool in the `go` command to analyse the trace.
@@ -296,6 +297,7 @@ profile: trace disabled, trace.out
 real	0m1,311s
 user	0m7,682s
 sys	0m0,266s
+# Gs: 1<<20 (1024×1024) 1'048'576
 ```
 
 So the runtime was basically the same.
@@ -328,6 +330,7 @@ profile: trace disabled, trace.out
 real	0m0,333s
 user	0m1,705s
 sys	0m0,008s
+# Gs: 1<<10 (1024)
 ```
 
 This looks like a good improvement, we almost halved the runtime of the program. Let's look at the trace.
@@ -357,6 +360,7 @@ profile: trace disabled, trace.out
 real	0m1,528s
 user	0m1,533s
 sys	0m0,000s
+# Gs: 1
 ```
 
 So, the **runtime was much worse than any previous**.
@@ -396,21 +400,32 @@ There are **lots of stops and starts inside the scheduler**, and potentially loc
 cd mandelbrot-buffered && go build mandelbrot.go
 
 time ./mandelbrot -mode workers -workers 4
-2020/12/20 00:42:40 profile: trace enabled, trace.out
-2020/12/20 00:42:41 profile: trace disabled, trace.out
+profile: trace enabled, trace.out
+profile: trace disabled, trace.out
 
-real	0m0,613s
-user	0m1,889s
-sys	0m0,033s
+real	0m0,587s
+user	0m1,833s
+sys	0m0,016s
 ```
 
 Using a buffered channel the trace showed us that:
-- The producer doesn’t have to wait for a worker to arrive, it can fill up the channel quickly.
-- The worker can quickly take the next item from the channel without having to sleep waiting on work to be produced.
+- **The producer doesn't have to wait for a worker to arrive**, it can fill up the channel quickly.
+- **The worker can quickly take the next item from the channel** without having to sleep waiting on work to be produced.
 
-Using this method we got nearly the same speed using a channel to hand off work per pixel than we did previously scheduling on goroutine per row.
+Using this method we got nearly the same speed using a channel to hand off work per pixel than we did previously scheduling one goroutine per row.
 
-> Modify nWorkersFillImg to work per row. An time the result and analyse the trace.
+- Modify `nWorkersFillImg` to work per row.
+- Time the result and analyse the trace.
+
+```sh
+time ./exercise -mode workers -workers 4
+profile: trace enabled, trace.out
+profile: trace disabled, trace.out
+
+real	0m0,541s
+user	0m1,546s
+sys	0m0,004s
+```
 
 ----
 

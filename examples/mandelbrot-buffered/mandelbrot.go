@@ -47,13 +47,10 @@ func main() {
 
 	switch *mode {
 	case "seq":
-		// 1 G
 		seqFillImg(img)
 	case "px":
-		// (height x width) 1'048'576 G's	=> 1024 * 1024 (1<<20)
 		oneToOneFillImg(img)
 	case "row":
-		// (width) 1024 G's	=> (1<<10)
 		onePerRowFillImg(img)
 	case "workers":
 		nWorkersFillImg(img, *workers)
@@ -88,10 +85,10 @@ func seqFillImg(m *img) {
 // one goroutine per pixel
 func oneToOneFillImg(m *img) {
 	var wg sync.WaitGroup
-	wg.Add(m.h * m.w) // 1024 * 1024 (1<<20)
+	wg.Add(m.h * m.w)
 	for i, row := range m.m {
 		for j := range row {
-			go func(i, j int) { // 1G => 1 pixel
+			go func(i, j int) {
 				fillPixel(m, i, j)
 				wg.Done()
 			}(i, j)
@@ -103,9 +100,9 @@ func oneToOneFillImg(m *img) {
 // one goroutine per row of pixels
 func onePerRowFillImg(m *img) {
 	var wg sync.WaitGroup
-	wg.Add(m.h) // 1024 (1<<10)
+	wg.Add(m.h)
 	for i := range m.m {
-		go func(i int) { // 1G => 1024 pixels (row)
+		go func(i int) {
 			for j := range m.m[i] {
 				fillPixel(m, i, j)
 			}
@@ -116,26 +113,24 @@ func onePerRowFillImg(m *img) {
 }
 
 func nWorkersFillImg(m *img, workers int) {
-	c := make(chan int, 1024) // buffer to small
+	c := make(chan struct{ i, j int }, m.h*m.w) // channel buffer size: 1<<20 (1024×1024)
 	var wg sync.WaitGroup
 	wg.Add(workers)
 	// Launch worker G's
-	for i := 0; i < workers; i++ { // G: (1 * workers)
+	for i := 0; i < workers; i++ {
 		go func() {
-			for i := range c { // channel (row)
-				for j := range m.m[i] { // col
-					fillPixel(m, i, j)
-				}
+			defer wg.Done()
+			for t := range c {
+				fillPixel(m, t.i, t.j)
 			}
-			wg.Done()
 		}()
 	}
 
-	// Producer fills channel with 1024 work items and blocks;
-	// waiting for workers to pull items of the channel and
-	// create room for more work items until done.
-	for i := range m.m {
-		c <- i
+	// Producer fills up the channel without blocking.
+	for i, row := range m.m {
+		for j := range row {
+			c <- struct{ i, j int }{i, j}
+		}
 	}
 	close(c)
 	wg.Wait()
