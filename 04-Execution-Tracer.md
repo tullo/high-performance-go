@@ -603,4 +603,4 @@ sys	0m0,002s
 
 ----
 
-(Compiler optimisations) [prev](03-Compiler-optimisations.md) | [next]() 
+(Compiler optimisations) [prev](03-Compiler-optimisations.md) | [next](05-Memory-and-Garbage-Collector.md) (Memory and Garbage Collector)

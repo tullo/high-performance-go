@@ -6,6 +6,7 @@ Notes taken while running through the workshop slides.
 1. [Performance measurement and profiling](02-Performance-measurement-and-profiling.md)
 1. [Compiler optimisations](03-Compiler-optimisations.md)
 1. [Execution Tracer](04-Execution-Tracer.md)
+1. [Memory and Garbage Collector](05-Memory-and-Garbage-Collector.md)
 
 ## Credit
 
