@@ -431,12 +431,14 @@ sys	0m0,004s
 
 ## 4.9 Mandelbrot microservice
 
-It’s 2019, generating Mandelbrots is pointless unless you can offer them on the internet as a serverless microservice.
+It's 2020, generating Mandelbrots is pointless unless you can offer them on the internet as a serverless microservice.
 
-Thus, I present to you, Mandelweb
+Thus, I present to you, *Mandelweb*
 
 ```sh
 go run examples/mandelweb/mandelweb.go
+
+listening on http://127.0.0.1:8080/
 ```
 
 http://127.0.0.1:8080/mandelbrot

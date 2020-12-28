@@ -215,3 +215,7 @@ mandelbrot-buffered-mode-workers-per-row:	# parallel execution
 	cd examples/mandelbrot-buffered/exercise ; time ./exercise -mode workers -workers 4
 	go tool trace ./examples/mandelbrot-buffered/exercise/trace.out
 #	48K trace.out				Gs: 4, channel buffer size: 1<<10 (1024)
+
+mandelweb:
+	go run examples/mandelweb/mandelweb.go
+
