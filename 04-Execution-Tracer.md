@@ -472,11 +472,13 @@ go tool trace trace.out
 
 ### 4.9.3 Generating some load
 
-The previous example was interesting, but an idle webserver has, by definition, no performance issues. We need to generate some load.
+The previous example was interesting, but an idle webserver has, by definition, no performance issues.
+
+We need to generate some load.
 
 ```sh
 GO111MODULE=on go get -u github.com/rakyll/hey
-# Let’s start with one request per second | 1 worker | 1000 requests.
+# Let's start with one request per second | 1 worker | 1000 requests.
 $(go env GOPATH)/bin/hey -c 1 -n 1000 -q 1 http://127.0.0.1:8080/mandelbrot
 
 # And with that running, in another window collect the trace
@@ -500,9 +502,9 @@ go tool trace trace.out
 
 The [concurrent prime sieve](https://github.com/golang/go/blob/master/doc/play/sieve.go) is one of the first Go programs written.
 
-Ivan Daniluk wrote a [great post on visualising](https://divan.dev/posts/go_concurrency_visualize/) it.
+Ivan Daniluk wrote a [great post on visualising](https://divan.dev/posts/go_concurrency_visualize/) it (WebGL animations).
 
-Let’s take a look at its operation using the execution tracer.
+Let's take a look at its operation using the execution tracer.
 
 ```go
 // A concurrent prime sieve
@@ -545,12 +547,12 @@ func main() {
 		ch = ch1
 	}
 }
-
 ```
 
 ```sh
+cd examples/sieve ; go build
 time ./sieve
-2020/12/20 01:30:08 profile: trace enabled, trace.out
+profile: trace enabled, trace.out
 2
 3
 5
@@ -561,11 +563,11 @@ time ./sieve
 19
 23
 29
-2020/12/20 01:30:08 profile: trace disabled, trace.out
+trace disabled, trace.out
 
-real	0m0,009s
-user	0m0,010s
-sys	0m0,005s
+real	0m0,002s
+user	0m0,000s
+sys	0m0,002s
 ```
 
 ----
@@ -596,8 +598,8 @@ sys	0m0,005s
 </li>
 </ul>
 
-- GopherCon 2019: Daniel Marti - Optimizing Go Code Without a Blindfold https://www.youtube.com/watch?v=oE_vm7KeV_E
-   - https://docs.google.com/presentation/d/1cUVp8OuzOW4lzClsiptgacW7nSFkcgvhLRVAOgVPpYg/edit#slide=id.g550f852d27_228_0
+- Daniel Marti - [Optimizing Go Code Without a Blindfold](https://www.youtube.com/watch?v=oE_vm7KeV_E) GopherCon 2019
+   - [presentation](https://docs.google.com/presentation/d/1cUVp8OuzOW4lzClsiptgacW7nSFkcgvhLRVAOgVPpYg/edit#slide=id.g550f852d27_228_0) (google docs)
 
 ----
 

@@ -216,6 +216,23 @@ mandelbrot-buffered-mode-workers-per-row:	# parallel execution
 	go tool trace ./examples/mandelbrot-buffered/exercise/trace.out
 #	48K trace.out				Gs: 4, channel buffer size: 1<<10 (1024)
 
-mandelweb:	# grab a five second trace from mandelweb
+mandelweb:
 	go run examples/mandelweb/mandelweb.go
-#	curl -o examples/mandelweb/trace.out http://127.0.0.1:8080/debug/pprof/trace?seconds=5
+
+mandelweb-five-second-trace:	# grab a five second trace from mandelweb
+	curl -o examples/mandelweb/trace.out http://127.0.0.1:8080/debug/pprof/trace?seconds=5
+	go tool trace ./examples/mandelweb/trace.out
+
+mandelweb-load-generator:
+	@echo "Let's start with one request per second | 1 worker | 1000 requests."
+	$$(go env GOPATH)/bin/hey -c 1 -n 1000 -q 1 http://127.0.0.1:8080/mandelbrot
+#	GO111MODULE=on go get -u github.com/rakyll/hey
+
+mandelweb-overload-simulator:
+	@echo "Let's increase the rate to 5 requests per second | 5 workers | 1000 requests."
+	$$(go env GOPATH)/bin/hey -c 5 -n 1000 -q 5 http://127.0.0.1:8080/mandelbrot
+
+concurrent-prime-sieve:
+	cd examples/sieve ; go build
+	cd examples/sieve ; time ./sieve
+	go tool trace ./examples/sieve/trace.out
