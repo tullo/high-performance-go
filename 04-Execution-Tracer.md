@@ -447,7 +447,7 @@ http://127.0.0.1:8080/mandelbrot
 
 As you saw, traces can be very large, even for small amounts of time, so collecting trace data continually would generate far too much data. Also, tracing can have an impact on the speed of your program, especially if there is a lot of activity.
 
-What we want is a way to collect a short trace from a running program.
+What we want is a way to `collect a short trace` **from a running program**.
 
 Fortuntately, the `net/http/pprof` package has just such a facility.
 
@@ -461,7 +461,7 @@ import _ "net/http/pprof"
 
 > If you are using that ServeMux implicitly, or explicitly, you may inadvertently expose the pprof endpoints to the internet. This can lead to source code disclosure. You probably don’t want to do this.
 
-We can grab a five second trace from mandelweb with curl (or wget)
+We can grab a `five second trace` from mandelweb with curl (or wget)
 
 ```sh
 curl -o trace.out http://127.0.0.1:8080/debug/pprof/trace?seconds=5
