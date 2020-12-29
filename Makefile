@@ -250,3 +250,6 @@ bytes-equality-testing:			# []byte to string conversions
 
 string-concatenation:			# avoid string concatenation
 	go test -run=^$$ -bench=. -benchmem ./examples/concat/
+
+slice-grow-with-append:			# append() is convenient, but wasteful
+	go run ./examples/grow

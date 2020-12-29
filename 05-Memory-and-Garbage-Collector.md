@@ -415,20 +415,32 @@ return s
 
 ## 5.4 Using sync.Pool
 
-The sync package comes with a `sync.Pool` type which is used to **reuse** common objects.
+The sync package comes with a `sync.Pool` type which is used to **reuse common objects**.
 
-> sync.Pool is not a cache.
-> 
-> It can and will be emptied at_any_time. Do not place important items in a sync.Pool, they will be discarded. 
+- `sync.Pool` is not a cache.
+- It **can and will be emptied at_any_time**.
+- **Do not place important items in a** `sync.Pool`, they will be discarded. 
 
-`sync.Pool` has no fixed size or maximum capacity. You add to it and take from it until a GC happens, then it is emptied unconditionally. This is by design:
+`sync.Pool` has no fixed size or maximum capacity.
+- You add to it and
+- take from it
+- until a GC happens,
+- then it is emptied unconditionally
+
+This is by design:
 
 > If before garbage collection is too early and after garbage collection too late, then the right time to drain the pool must be during garbage collection. That is, the semantics of the Pool type must be that it drains at each garbage collection. — Russ Cox
 
 ```go
-// examples/pool/pool.go
-
-var pool = sync.Pool{New: func() interface{} { return make([]byte, 4096) }}
+// A Pool's purpose is to cache allocated but unused items
+// for later reuse, relieving pressure on the garbage collector.
+var pool = sync.Pool{
+	// New specifies a function to generate a value
+	// when Get would otherwise return nil
+	New: func() interface{} {
+		return make([]byte, 4096)
+	},
+}
 
 func fn() {
 	buf := pool.Get().([]byte) // takes from pool or calls New
@@ -437,6 +449,7 @@ func fn() {
 }
 ```
 
+----
 
 ## 5.5 Rearrange fields for better packing
 
