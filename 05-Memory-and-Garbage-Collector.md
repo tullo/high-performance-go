@@ -340,7 +340,7 @@ BenchmarkStringsBuilder-12    	 1445193	       813 ns/op	     280 B/op	      11 
 
 ----
 
-## 5.3.5 Don’t force allocations on the callers of your API
+## 5.3.5 Don't force allocations on the callers of your API
 
 Make sure your APIs allow the caller to reduce the amount of garbage generated.
 
@@ -348,11 +348,18 @@ Consider these two Read methods:
 
 ```go
 func (r *Reader) Read() ([]byte, error)
+
 func (r *Reader) Read(buf []byte) (int, error)
 ```
 
- - The first Read method **will always allocate** a buffer, putting pressure on the GC.
- - The second fills the buffer it was given.
+The first Read method takes no arguments and returns some data as a `[]byte`.
+
+ - This Read method `will always allocate a buffer`, putting pressure on the GC.
+
+The second Read method takes a `[]byte buffer` and returns the amount of bytes read.
+ - This Read method `fills the buffer it was given`.
+
+----
 
 ## 5.3.6 Preallocate slices if the length is known
 
