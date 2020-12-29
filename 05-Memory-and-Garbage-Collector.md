@@ -225,16 +225,22 @@ val, ok := m[key] // No compiler optimization
 Write a benchmark comparing these two methods of using a `[]byte` as a `string` map key.
 
 ```sh
-go test -bench=. -benchmem ./examples/benchmap/
+go test -run=^$ -bench=. -benchmem ./examples/benchmap/
 
 BenchmarkMapLookup-12     	64933486	        18.1 ns/op	       0 B/op	       0 allocs/op
 BenchmarkMapLookup2-12    	54124168	        21.8 ns/op	       0 B/op	       0 allocs/op
-
 ```
+
+----
 
 ## 5.3.3 []byte to string conversions
 
-The good news is in 1.13 the compiler has improved to the point that []byte to string conversions for the purpose of **equality testing avoids** the allocation.
+Just like `[]byte` to `string` conversions are necessary for map keys, comparing two `[]byte` slices for equality either
+
+- requires a conversion — potentially a copy — to a `string`
+- or the use of the `bytes.Equal` function.
+
+The good news is in 1.13 the compiler has improved to the point that `[]byte` to `string` conversions for the purpose of **equality testing avoids** the allocation.
 
 ```go
 func BenchmarkBytesEqualInline(b *testing.B) {
@@ -262,17 +268,18 @@ func BenchmarkBytesEqualExplicit(b *testing.B) {
 		}
 	}
 }
-
-/*
-go test -bench=. ./examples/bytesequality/
-
-pkg: high-performance-go-workshop/examples/bytesequality
-BenchmarkBytesEqualInline-12      	   36277	     37110 ns/op	       0 B/op	       0 allocs/op
-BenchmarkBytesEqualExplicit-12    	    4873	    240004 ns/op	 2097155 B/op	       2 allocs/op
-*/
 ```
 
-However, the copy is only elided in simple cases.
+```sh
+go test -run=^$ -bench=. -benchmem ./examples/byteseq
+
+BenchmarkBytesEqualInline-12      	   31782	     37031 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBytesEqualExplicit-12    	    4924	    241077 ns/op	 2097155 B/op	       2 allocs/op
+```
+
+However, **the copy is only elided in simple cases**.
+
+----
 
 ## 5.3.4 Avoid string concatenation
 

@@ -236,3 +236,14 @@ concurrent-prime-sieve:
 	cd examples/sieve ; go build
 	cd examples/sieve ; time ./sieve
 	go tool trace ./examples/sieve/trace.out
+
+
+# =============================================================================
+# === MEMORY and GARBAGE COLLECTOR ============================================
+# =============================================================================
+
+benchmap-key-conversion:		# using []byte as a map key
+	go test -run=^$$ -bench=. -benchmem ./examples/benchmap/
+
+bytes-equality-testing:			# []byte to string conversions
+	go test -run=^$$ -bench=. -benchmem ./examples/byteseq
