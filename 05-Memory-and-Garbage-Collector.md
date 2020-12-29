@@ -119,10 +119,11 @@ Scavenging is especially useful in dealing with page-level external fragmentatio
 
 A simple way to obtain a general idea of how hard the garbage collector is working is to enable the output of GC logging.
 
-These stats are always collected, but normally suppressed, you can enable their display by setting the GODEBUG environment variable.
+These **stats are always collected**, but normally suppressed, you can **enable their display** by setting the `GODEBUG` environment variable.
 
 ```go
 GODEBUG=gctrace=1 godoc -http=:8080
+
 gc 1 @0.012s 2%: 0.026+0.39+0.10 ms clock, 0.21+0.88/0.52/0+0.84 ms cpu, 4->4->0 MB, 5 MB goal, 8 P
 gc 2 @0.016s 3%: 0.038+0.41+0.042 ms clock, 0.30+1.2/0.59/0+0.33 ms cpu, 4->4->1 MB, 5 MB goal, 8 P
 gc 3 @0.020s 4%: 0.054+0.56+0.054 ms clock, 0.43+1.0/0.59/0+0.43 ms cpu, 4->4->1 MB, 5 MB goal, 8 P
@@ -133,37 +134,40 @@ gc 7 @0.038s 6%: 0.057+0.47+0.046 ms clock, 0.46+1.2/0.67/0+0.37 ms cpu, 4->4->1
 gc 8 @0.041s 6%: 0.049+0.42+0.057 ms clock, 0.39+1.1/0.57/0+0.46 ms cpu, 4->4->1 MB, 5 MB goal, 8 P
 gc 9 @0.045s 6%: 0.047+0.38+0.042 ms clock, 0.37+0.94/0.61/0+0.33 ms cpu, 4->4->1 MB, 5 MB goal, 8 P
 
-where the fields are as follows:
-	gc #        the GC number, incremented at each GC
-	@#s         time in seconds since program start
-	#%          percentage of time spent in GC since program start
-	#+...+#     wall-clock/CPU times for the phases of the GC
-	#->#-># MB  heap size at GC start, at GC end, and live heap
-	# MB goal   goal heap size
-	# P         number of processors used
+Where the fields are as follows:
+	'gc #'        the GC number, incremented at each GC
+	'@#s'         time in seconds since program start
+	'#%'          percentage of time spent in GC since program start
+	'#+...+#'     wall-clock/CPU times for the phases of the GC
+	'#->#-># MB'  heap size at GC start, at GC end, and live heap
+	'# MB goal'   goal heap size
+	'# P'         number of processors used
 
-The phases of GC are 
-- stop-the-world (STW)
-- sweep termination, 
-- concurrent mark and scan,
-- and STW mark termination.
+The phases of GC are:
+(1) STW sweep termination => (2) concurrent mark and scan => (3) STW mark termination
+    0.21+0.88/                   0.52/                           0+0.84 ms cpu
+
+// STW => stop-the-world
 ```
-The trace output gives a general measure of GC activity. The [output format of gctrace=1](https://golang.org/pkg/runtime/#hdr-Environment_Variables) is described in the runtime package documentation.
+The trace output gives a general measure of GC activity. The [output format of gctrace=1](https://golang.org/pkg/runtime/#hdr-Environment_Variables) is described in the `runtime` package documentation.
 
-> Use this `env var` in **production**, it has no performance impact. 
+> Use the `GODEBUG` in **production**, it has **no performance impact**. 
 
-Using GODEBUG=gctrace=1 is good when you know there is a problem, but for general telemetry on your Go application I recommend the net/http/pprof interface.
+Using `GODEBUG=gctrace=1` is good **when you know there is a problem**
+- but for **general telemetry** on your Go application I recommend the `net/http/pprof` interface.
 
 ```go
 import _ "net/http/pprof"
 ```
 
-Importing the net/http/pprof package will register a handler at /debug/pprof with various runtime metrics, including:
+Importing the `net/http/pprof` package will register a handler at `/debug/pprof` with **various runtime metrics**, including:
 
-- A list of all the running goroutines, `/debug/pprof/heap?debug=1`
-- A report on the memory allocation statistics, `/debug/pprof/heap?debug=1`
+- A list of all the **running goroutines**, `/debug/pprof/heap?debug=1`
+- A report on the **memory allocation statistics**, `/debug/pprof/heap?debug=1`
 
-Be careful as this will be visible if you use http.ListenAndServe(address, nil).
+> Be careful as these endpoints will be visible if you use `http.ListenAndServe(address, nil)`.
+
+----
 
 ## 5.3 Minimise allocations
 
