@@ -21,7 +21,7 @@ Dave Cheney dave@cheney.net (v379996b, 2019-07-24)
 
 # 5. Memory and Garbage Collector
 
-Go is a garbage collected language. This is a design principle, it will not change.
+> Go is a garbage collected language. This is a design principle, it will not change.
 
 As a garbage collected language, the **performance of Go programs** is often determined by their **interaction with the garbage collector**.
 
@@ -31,7 +31,7 @@ This section discusses the operation of the garbage collector, how to measure th
 
 ## 5.1 Garbage collector world view
 
-Over time the Go GC has moved from a pure stop the world collector to a concurrent, non compacting, collector.
+Over time the Go GC has moved from a pure stop the world collector to a `concurrent, non compacting, collector`.
 
 This is because the Go GC is designed for **low latency servers** and **interactive applications**.
 
@@ -79,32 +79,41 @@ You should `choose your own value after profiling your application with producti
 
 ----
 
-## 5.2.2. VSS and the scavenger
+## 5.2.2. RSS and the scavenger
 
-Many applications operate through distict phases; 
+Many applications operate through distict phases:
 - setup, 
 - steady-state, 
 - and (optionally) shutdown.
 
-The phases have different memory profiles.
+The phases have different memory profiles:
 
-- Setup may process or summarise a large amounts of data.
-- Steady-state may consume memory proportional to connected clients or request rate.
-- Shutdown may consume memory proportional to the amount of data process during steady state to summarise or pasivate data to disk.
+- **Setup** may process or summarise **large amounts of data**.
+- **Steady-state** may consume memory **proportional to connected clients or request rate**.
+- **Shutdown** may consume memory proportional to the amount of data processed during steady state to **summarise or pasivate data to disk**.
 
-In practical terms your application may use more memory on startup than during the rest of it’s life, then its heap will be larger than necessary, but mostly unused.
+In practical terms your application may use more memory on startup than during the rest of it's life, then its **heap will be larger than necessary**, but mostly unused.
 
-It would be useful if the **Go runtime** could **tell the operating system** which parts of the, mostly unoccupied, heap are not needed.
+It would be useful if the **Go runtime** could **tell the operating system** [which parts of the, mostly unoccupied, heap are not needed](https://github.com/golang/proposal/blob/master/design/30333-smarter-scavenging.md#scavenging) (scavenging).
 
-> New in Go 1.13
+Scavenging is especially useful in dealing with page-level external fragmentation, since we can give these fragments back to the OS, reducing the process' **resident set size** (`RSS`). That is, the amount of memory that is backed by physical memory in the application’s address space.
+
+> The Scavenging Process
+> 
+> The scavenger has remained mostly unchanged since it was first implemented in Go 1.1.
 >
-> The scavenger has remained mostly unchanged since it was first implemented in Go 1.1. In Go 1.13 scavenging moves from a periodic background operation to something demand driven, thus processes which do not benefit from scavenging do not pay for it where as long running programs where memory allocation varys widely should return memory to the operating system more effectively.
+> As of Go 1.11, the only scavenging process in the Go runtime was a `periodic scavenger which runs every 2.5 minutes`. This scavenger combs over all the free spans in the heap and scavenge them if they have been `unused for at least 5 minutes`.
 >
-> However, some of the CLs related to scavenging have not been committed.
+> As of Go 1.12, in addition to the periodic scavenger, the Go runtime also performs heap-growth scavenging.
+> 
+>In Go 1.13 scavenging moves to something demand driven, thus processes which do not benefit from scavenging do not pay for it whereas long running programs where memory allocation varys widely should return memory to the operating system more effectively.
 >
-> It is possible that this work will not be completed until Go 1.14.
+> However, some of the CLs related to scavenging have not been committed. It is possible that this work will not be completed until Go 1.14.
 >
->[ Smarter scavenging design document](https://github.com/golang/proposal/blob/master/design/30333-smarter-scavenging.md) - [Proposal: Smarter Scavenging](https://github.com/golang/go/issues/30333)
+> - [Design Document](https://github.com/golang/proposal/blob/master/design/30333-smarter-scavenging.md) Smarter Scavenging
+> - [Proposal](https://github.com/golang/go/issues/30333) Smarter Scavenging
+
+----
 
 ## 5.2.3. Garbage collector monitoring
 
