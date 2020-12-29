@@ -186,15 +186,17 @@ Because that cost is spread across many places, identifying the biggest offender
 
 In Go `string` values are **immutable**, `[]byte` are **mutable**.
 
-Most programs prefer to work string, but most IO is done with []byte.
+Most programs prefer to work with `string`, but **most IO is done** with `[]byte`.
 
-**Avoid []byte to string conversions** wherever possible, this normally means picking one representation, either a string or a []byte for a value.
+**Avoid `[]byte` to `string` conversions** wherever possible, this normally means picking one representation, either a `string` or a `[]byte` for a value.
 
-Often this will be `[]byte` if you read the data from the network or disk.
+Often this will be `[]byte` if you read the data from the **network or disk**.
 
-The [bytes](https://golang.org/pkg/bytes/) package contains many of the same operations — Split, Compare, HasPrefix, Trim, etc — as the [strings](https://golang.org/pkg/strings/) package.
+The [bytes](https://golang.org/pkg/bytes/) package contains many of the same operations — `Split`, `Compare`, `HasPrefix`, `Trim`, etc — as the [strings](https://golang.org/pkg/strings/) package.
 
-Under the hood strings uses same assembly primitives as the bytes package.
+Under the hood `strings` uses **same assembly primitives** as the `bytes` package.
+
+---
 
 ## 5.3.2 Using []byte as a map key
 
