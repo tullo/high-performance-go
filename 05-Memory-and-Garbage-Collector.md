@@ -21,38 +21,63 @@ Dave Cheney dave@cheney.net (v379996b, 2019-07-24)
 
 # 5. Memory and Garbage Collector
 
-Next to your choice of algorithms, **memory consumption** is the most important factor that determines the performance and scalability of your application.
+Go is a garbage collected language. This is a design principle, it will not change.
 
-This section discusses the operation of the garbage collector, how to measure the memory usage of your program and strategies for lowering memory usage if garbage collector performance is a bottleneck.
+As a garbage collected language, the **performance of Go programs** is often determined by their **interaction with the garbage collector**.
+
+Next to your choice of algorithms, **memory consumption** is the most **important factor** that determines the performance and scalability of your application.
+
+This section discusses the operation of the garbage collector, how to measure the memory usage of your program and **strategies for lowering memory usage** `if garbage collector performance is a bottleneck`.
 
 ## 5.1 Garbage collector world view
 
-The Go GC has moved from a pure stop the world collector to a concurrent, non compacting, collector.
+Over time the Go GC has moved from a pure stop the world collector to a concurrent, non compacting, collector.
 
-This is because the Go GC is designed for low latency servers and interactive applications.
+This is because the Go GC is designed for **low latency servers** and **interactive applications**.
 
 ## 5.2 Garbage collector design
 
-The design of the Go GC has changed over the years
-- Go 1.0, stop the world mark sweep collector based heavily on tcmalloc.
-- Go 1.3, fully precise collector, wouldn’t mistake big numbers on the heap for pointers, thus leaking memory.
-- Go 1.5, new GC design, focusing on latency over throughput.
-- Go 1.6, GC improvements, handling larger heaps with lower latency.
+The design of the Go GC has changed over the years:
+
+- Go 1.0, **stop the world mark sweep collector** based heavily on tcmalloc.
+- Go 1.3, fully precise collector, wouldn't mistake big numbers on the heap for pointers, thus leaking memory.
+- Go 1.5, new GC design, focusing on **latency over throughput**.
+- Go 1.6, GC improvements, **handling larger heaps with lower latency**.
 - Go 1.7, small GC improvements, mainly refactoring.
-- Go 1.8, further work to reduce STW times, now down to the 100 microsecond range.
-- Go 1.10+, move away from pure cooprerative goroutine scheduling to lower the latency when triggering a full GC cycle.
-- Go 1.13 Scavenger rewritten
+- Go 1.8, further work to **reduce STW times**, now down to the **100 microsecond** range.
+- Go 1.10+, **move away from pure cooprerative goroutine scheduling** to lower the latency when triggering a full GC cycle.
+- Go 1.13 **Scavenger rewritten**.
+
+----
 
 ## 5.2.1. Garbage collector tuning
 
 The Go runtime provides one environment variable to tune the GC, [GOGC](https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html#memory-and-gc).
 
-- Values of GOGC greater than 100 causes the heap to grow faster, reducing the pressure on the GC.
-- Values of GOGC less than 100 cause the heap to grow slowly, increasing the pressure on the GC.
+The formula for GOGC is:
 
-The default value of 100 is just_a_guide.
+```txt
+goal = reachable * (1 + GOGC/100)
+```
 
-You should choose your own value after profiling your application with production loads.
+For example, if we currently have a 256MB heap, and `GOGC=100` (the default), when the heap fills up it will grow to:
+
+```txt
+goal = reachable * (1 + GOGC/100)
+---------------------------------
+goal = 256MB * (1 + 100/100)
+goal = 256MB * 2
+goal = 512MB
+```
+
+- Values of `GOGC` **greater than 100** causes the heap to grow faster, `reducing` the **pressure on the GC**.
+- Values of `GOGC` **less than 100** cause the heap to grow slowly, `increasing` the **pressure on the GC**.
+
+The default value of `100 is just_a_guide`.
+
+You should `choose your own value after profiling your application with production loads`.
+
+----
 
 ## 5.2.2. VSS and the scavenger
 
