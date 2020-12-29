@@ -200,32 +200,36 @@ Under the hood `strings` uses **same assembly primitives** as the `bytes` packag
 
 ## 5.3.2 Using []byte as a map key
 
-It is very common to use a string as a map key, but often you have a []byte.
+It is very common to use a `string` as a map key, but often you have a `[]byte`.
 
-Alterntative you may have a key in []byte form, but slices do not have a defined equality operator so cannot be used as map keys.
+Alterntative you may have a key in `[]byte` form, but slices do not have a defined equality operator so **cannot be used as map keys**.
+
+The compiler implements a specific optimisation for this case:
 
 ```go
-var bytes []byte // map key
+var bytes []byte{'F', 'r', 'a', 'n', 'c', 'e'}
 
-// The compiler implements a specific optimisation for this case:
 var m map[string]string
-v, ok := m[string(bytes)]
+v, ok := m[string(bytes)] // compiler specific optimisation
 ```
 
-This will avoid the conversion of the byte slice to a string for the map lookup. This is very specific.
+**This will avoid the conversion** of the byte slice to a string for the map lookup.
+
+This is very specific, it won't work if you do something like:
 
 ```go
-// It won’t work if you do something like
 key := string(bytes)
-val, ok := m[key]
+val, ok := m[key] // No compiler optimization
 ```
-Write a benchmark comparing these two methods of using a []byte as a string map key.
+
+Write a benchmark comparing these two methods of using a `[]byte` as a `string` map key.
 
 ```sh
-go test -bench=. ./examples/bytesmapkey
+go test -bench=. -benchmem ./examples/benchmap/
 
-BenchmarkByteArrayKey-12    	60610755	        19.0 ns/op	       0 B/op	       0 allocs/op
-BenchmarkStringKey-12       	248305336	         4.88 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMapLookup-12     	64933486	        18.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMapLookup2-12    	54124168	        21.8 ns/op	       0 B/op	       0 allocs/op
+
 ```
 
 ## 5.3.3 []byte to string conversions
