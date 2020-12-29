@@ -253,3 +253,6 @@ string-concatenation:			# avoid string concatenation
 
 slice-grow-with-append:			# append() is convenient, but wasteful
 	go run ./examples/grow
+
+padding-and-alignment:			# fields padding and alignment
+	go run ./examples/fields/

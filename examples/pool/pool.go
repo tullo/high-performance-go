@@ -2,6 +2,8 @@ package p
 
 import "sync"
 
+// A Pool's purpose is to cache allocated but unused items
+// for later reuse, relieving pressure on the garbage collector.
 var pool = sync.Pool{
 	// New specifies a function to generate a value
 	// when Get would otherwise return nil

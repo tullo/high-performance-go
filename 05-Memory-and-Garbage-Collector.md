@@ -431,6 +431,8 @@ This is by design:
 
 > If before garbage collection is too early and after garbage collection too late, then the right time to drain the pool must be during garbage collection. That is, the semantics of the Pool type must be that it drains at each garbage collection. — Russ Cox
 
+`sync.Pool` in action:
+
 ```go
 // A Pool's purpose is to cache allocated but unused items
 // for later reuse, relieving pressure on the garbage collector.
@@ -449,17 +451,22 @@ func fn() {
 }
 ```
 
+New in Go 1.13
+> This CL fixes this by introducing a **victim cache** mechanism. Instead of clearing Pools, the victim cache is dropped and the primary cache is moved to the victim cache. As a result, **in steady-state, there are (roughly) no new allocations**, but if Pool usage drops, objects will still be collected within two GCs (as opposed to one). — Austin Clements
+>
+> Further reading: https://go-review.googlesource.com/c/go/+/166961/ - https://github.com/golang/go/issues/22331
+
 ----
 
 ## 5.5 Rearrange fields for better packing
 
-Consider this struct declaration
+Consider this struct declaration:
 
 ```go
 type S struct {
-    a bool
+	a bool
 	b float64
-    c int32
+	c int32
 }
 ```
 
@@ -468,7 +475,8 @@ How many **bytes of memory** does a value of this type consume?
 ```go
 var s S
 fmt.Println(unsafe.Sizeof(s)) 
-// 24 bytes on 64-bit platforms, 16 on 32-bit platforms.
+// 24 bytes on 64-bit platforms
+// 16 bytes on 32-bit platforms.
 ```
 
 Why? The answer has to do with **padding and alignment**.
@@ -477,7 +485,10 @@ On platforms that do support so called **unaligned access**, there is usually a 
 
 > Even on platforms that allow unaligned access, `sync/atomic` requires the values be naturally aligned.
 > 
-> This is because atomic operations are implemented in the various **L1, L2, L3 caching layers**, which always work in amounts known as `cache lines` (normally 32-64 bytes wide). `Atomic access cannot span cache lines`, so they must be correctly aligned. 
+> This is because atomic operations are implemented in the various **L1, L2, L3 caching layers**, which always work in amounts known as **`cache lines`** (normally 32-64 bytes wide). `Atomic access cannot span cache lines`, so they must be correctly aligned. 
+
+Values of type `float64` are `8 bytes wide` on all platforms, so they must always be `located at an address` that is a `multiple of 8`.
+- This is known as `natural alignment`
 
 ```go
 // The CPU expects fields which are 4 bytes long
@@ -487,19 +498,20 @@ On platforms that do support so called **unaligned access**, there is usually a 
 
 type S struct {
     a bool      // 1 byte
-                // 7 bytes padding 
-	b float64   // 8 bytes wide on all platforms
+                // 7 bytes padding
+    b float64   // 8 bytes wide on all platforms
     c int32     // 4 bytes
                 // 4 bytes padding
                 // 24 bytes
 }
 
+//=============================================================================
 // We can infer how the compiler is going to lay out these fields in memory:
 type S struct {
-	a bool    // [0] ==> start
-	_ [7]byte // padding 
-	b float64 // [8] (8*1)
-	c int32   // [16] (4*4) ==> start + 4 bytes
+    a bool    // [0] ==> start
+    _ [7]byte // padding 
+    b float64 // [8] (8*1)
+    c int32   // [16] (4*4) ==> start + 4 bytes
     _ [4]byte // padding 
               // [24] <== end index ([16]+4+4)
 }
@@ -512,10 +524,11 @@ type S struct {
 
 ```go
 type S struct {
-	b float64   // 8 bytes wide on all platforms
+    b float64   // 8 bytes wide on all platforms
     c int32     // 4 bytes
     a bool      // 1 byte
-                // 13 bytes
+    _ [3]byte   // padding <1>
+                // 16 bytes
 }
 ```
 
