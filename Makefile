@@ -246,4 +246,7 @@ benchmap-key-conversion:		# using []byte as a map key
 	go test -run=^$$ -bench=. -benchmem ./examples/benchmap/
 
 bytes-equality-testing:			# []byte to string conversions
-	go test -run=^$$ -bench=. -benchmem ./examples/byteseq
+	go test -run=^$$ -bench=. -benchmem ./examples/byteseq/
+
+string-concatenation:			# avoid string concatenation
+	go test -run=^$$ -bench=. -benchmem ./examples/concat/

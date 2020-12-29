@@ -283,13 +283,12 @@ However, **the copy is only elided in simple cases**.
 
 ## 5.3.4 Avoid string concatenation
 
-Go strings are immutable.
-
-Concatenating two strings generates a third.
+Go strings are immutable. Concatenating two strings generates a third.
 
 Which of the following is fastest?
 
 ```go
+// Concatenating strings
 s := request.ID
 s += " " + client.Addr().String()
 s += " " + time.Now().String()
@@ -297,16 +296,19 @@ r = s
 ```
 
 ```go
+// fmt.Fprintf
 var b bytes.Buffer
 fmt.Fprintf(&b, "%s %v %v", request.ID, client.Addr(), time.Now())
 r = b.String()
 ```
 
 ```go
+// fmt.Sprintf
 r = fmt.Sprintf("%s %v %v", request.ID, client.Addr(), time.Now())
 ```
 
 ```go
+// []byte to string conversion
 b := make([]byte, 0, 40)
 b = append(b, request.ID...)
 b = append(b, ' ')
@@ -317,6 +319,7 @@ r = string(b)
 ```
 
 ```go
+// strings.Builder
 var b strings.Builder
 b.WriteString(request.ID)
 b.WriteString(" ")
@@ -327,13 +330,15 @@ r = b.String()
 ```
 
 ```go
-// go test -bench=. ./examples/concat
+// go test -run=^$ -bench=. -benchmem ./examples/concat/
 BenchmarkConcatenate-12       	 1562970	       754 ns/op	     272 B/op	      10 allocs/op
 BenchmarkFprintf-12           	 1000000	      1272 ns/op	     432 B/op	      13 allocs/op
 BenchmarkSprintf-12           	 1000000	      1090 ns/op	     304 B/op	      11 allocs/op
 BenchmarkStrconv-12           	 2278242	       540 ns/op	     165 B/op	       5 allocs/op
 BenchmarkStringsBuilder-12    	 1445193	       813 ns/op	     280 B/op	      11 allocs/op
 ```
+
+----
 
 ## 5.3.5 Don’t force allocations on the callers of your API
 
