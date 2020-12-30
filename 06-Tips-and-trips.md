@@ -20,7 +20,7 @@ High Performance Go Workshop
     6.9. Avoid Finalisers
     6.10. Minimise cgo
     6.11. Always use the latest released version of Go
-    6.12. Discussion
+    6.12. Performance Mantras
 
 Dave Cheney dave@cheney.net (v379996b, 2019-07-24) 
 ```
@@ -311,11 +311,24 @@ Old versions of Go will never get better. They will never get bug fixes or optim
 - Go 1.9-1.12 continue to improve the performance of generated code, fix bugs, and improve inlining and improve debugging.
 - Go 1.13 improved defer performance, faster timers (still in progress), better scavenger (still in progress).
 
-> Old version of Go receive no updates. **Do not use them**.
->
-> Use the latest and you will get the best performance. 
+Old versions of Go receive no updates. **Do not use them**.
 
-## 6.12 Discussion
+Use the latest release and you will get the best performance. 
+
+----
+
+## 6.12 Performance Mantras
+
+	Don't do it
+	Do it, but don't do it again
+	Do it less
+	Do it later
+	Do it when they're not looking
+	Do it concurrently
+	Do it cheaper
+— [Brendan Gregg](http://www.brendangregg.com/methodology.html)
+
+----
 
 - `g660848, 2019-04-26` https://dave.cheney.net/high-performance-go-workshop/dotgo-paris.html (linket til fra github repo) (sections 1-7) (Paris)
 - `379996b, 2019-07-24` https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html (linket til fra blog) (sections 1-6) (San Diego)
