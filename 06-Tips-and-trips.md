@@ -262,7 +262,7 @@ BenchmarkFor-12                10422	    114531 ns/op
 Finalisation is a technique to attach behaviour to an object which is just about to be garbage collected.
 
 - For a finaliser to run, the object must not be reachable by anything.
-- If you accidentally keep a reference to the object in the map, it won’t be finalised.
+- If you accidentally keep a reference to the object in the map, it won't be finalised.
 
 Finalisers run as part of the gc cycle, which means it is unpredictable when they will run and puts them at odds with the goal of reducing gc operation.
 
@@ -272,25 +272,33 @@ A finaliser may not run for a long time if you have a large heap and have tuned 
 
 cgo allows Go programs to call into C libraries.
 
-C code and Go code live in two different universes, cgo traverses the boundary between them.
+C code and Go code live in two different universes, **cgo traverses the boundary** between them.
 
 This transition is not free and depending on where it exists in your code, the cost could be substantial.
 
-> cgo calls are similar to blocking IO, they consume a thread during operation.
+`cgo calls` are similar to blocking IO, they `consume an OS thread during operation`.
 
 > Do not call out to C code in the middle of a tight loop.
 
+----
+
 ### 6.10.1 Actually, maybe avoid cgo
 
-cgo has a high overhead.
+`cgo has a high overhead`.
 
-For best performance I recommend avoiding cgo in your applications.
+For best performance I recommend **avoiding cgo** in your applications.
 
 - If the C code takes a long time, cgo overhead is not as important.
-- If you’re using cgo to call a very short C function, where the overhead is the most noticeable, rewrite that code in Go — by definition it’s short.
-- If you’re using a large piece of expensive C code that is called in a tight loop, why are you using Go?
+- If you're using cgo to call a very short C function, where the overhead is the most noticeable, rewrite that code in Go — by definition it's short.
+- If you're using a large piece of expensive C code that is called in a tight loop, why are you using Go?
 
-Is there anyone who’s using cgo to call expensive C code frequently?
+Is there anyone who's using cgo to call expensive C code frequently?
+
+Further reading:
+
+- [cgo is not Go](https://dave.cheney.net/2016/01/18/cgo-is-not-go)
+
+----
 
 ## 6.11 Always use the latest released version of Go
 
