@@ -546,4 +546,4 @@ type S struct {
 
 ----
 
-(Execution Tracer) [prev](04-Execution-Tracer.md) | [next]()
+(Execution Tracer) [prev](04-Execution-Tracer.md) | [next](06-Tips-and-trips.md) (Tips and trips)

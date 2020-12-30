@@ -7,6 +7,7 @@ Notes taken while running through the workshop slides.
 1. [Compiler optimisations](03-Compiler-optimisations.md)
 1. [Execution Tracer](04-Execution-Tracer.md)
 1. [Memory and Garbage Collector](05-Memory-and-Garbage-Collector.md)
+1. [Tips and trips](06-Tips-and-trips.md)
 
 ## Credit
 
