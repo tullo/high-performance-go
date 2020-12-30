@@ -41,7 +41,7 @@ The **Go runtime has been written for programs**:
 
 However, `each goroutine does consume` a minimum amount of `memory for the goroutine's stack` which is currently `at least 2k`.
 
-`2048 * 1,000,000 goroutines` => `2GB of memory`, and they haven’t done anything yet.
+`2048 * 1,000,000 goroutines` => `2GB of memory`, and they haven't done anything yet.
 
 Maybe this is a lot, maybe it isn't given the other usages of your application.
 
@@ -49,15 +49,19 @@ Maybe this is a lot, maybe it isn't given the other usages of your application.
 
 ### 6.1.1 Know when to stop a goroutine
 
-Goroutines are cheap to start and cheap to run, but they do have a finite cost in terms of memory footprint; you cannot create an infinite number of them.
+`Goroutines are cheap to start and cheap to run`, but they do have a `finite cost in terms of memory footprint`; you cannot create an infinite number of them.
 
-> Every time you use the `go keyword` in your program to launch a goroutine, you must know `how, and when`, that **goroutine will exit**.
+**Every time you use the `go keyword` in your program to launch a goroutine, you must know `how, and when, that goroutine will exit`**.
 
 In your design, some goroutines may run until the program exits. These goroutines are rare enough to not become an exception to the rule.
 
-If you don’t know the answer, that’s a **potential memory leak** as the goroutine will pin its stack’s memory on the heap, as well as any heap allocated variables reachable from the stack.
+`Never start a goroutine without knowing how it will stop`:
 
-> Never start a goroutine without knowing how it will stop.
+- If you don't know the answer, that's a `potential memory leak`,
+- as the goroutine will pin its stack's memory on the heap,
+- as well as any heap allocated variables reachable from the stack
+
+----
 
 ### 6.1.2 Further reading
 
