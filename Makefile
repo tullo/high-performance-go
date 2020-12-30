@@ -256,3 +256,14 @@ slice-grow-with-append:			# append() is convenient, but wasteful
 
 padding-and-alignment:			# fields padding and alignment
 	go run ./examples/fields/
+
+range-vs-for:					# range versus for loop
+	go test -gcflags=-S -run=^$$ -bench=. -benchmem ./examples/range 2>bounds-check.txt
+	@echo "BenchmarkRangeValue:"
+	@grep -v PCDATA bounds-check.txt | grep -v FUNCDATA | grep -A 58 "BenchmarkRangeValue(SB)"
+	@echo
+	@echo "BenchmarkRangeIndex:"
+	@grep -v PCDATA bounds-check.txt | grep -v FUNCDATA | grep -A 22 "BenchmarkRangeIndex(SB)"
+	@echo
+	@echo "BenchmarkFor:"
+	@grep -v PCDATA bounds-check.txt | grep -v FUNCDATA | grep -A 22 "BenchmarkFor(SB)"

@@ -245,13 +245,17 @@ func BenchmarkFor(b *testing.B) {
 Run the benchmark? We’re you correct?
 
 ```sh
-# go test -benchmem -run=^$ -bench ./examples/range
-BenchmarkRangeValue-12    	      74	  16032854 ns/op	       0 B/op	       0 allocs/op
-BenchmarkRangeIndex-12    	    8948	    114908 ns/op	       0 B/op	       0 allocs/op
-BenchmarkFor-12           	   10000	    114137 ns/op	       0 B/op	       0 allocs/op
+# go test -run=^$ -bench=. ./examples/range
+
+BenchmarkRangeValue-12            75	  15603563 ns/op
+BenchmarkRangeIndex-12         10497	    115826 ns/op
+BenchmarkFor-12                10422	    114531 ns/op
 ```
 
 > Exercise: using the tools we’ve discussed today, figure out why BenchmarkRange is slower than BenchmarkFor
+- BenchmarkRange (`58 assembly instructions`)
+- BenchmarkRangeIndex (22 assembly instructions)
+- BenchmarkFor (22 assembly instructions)
 
 ## 6.9 Avoid Finalisers
 
