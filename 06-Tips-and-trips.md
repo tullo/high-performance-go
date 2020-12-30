@@ -67,23 +67,28 @@ In your design, some goroutines may run until the program exits. These goroutine
 
 - [Concurrency Made Easy](https://www.youtube.com/watch?v=yKQOunhhf4A&index=16&list=PLq2Nv-Sh8EbZEjZdPLaQt1qh_ohZFMDj8) video (GopherCon Singapure 2017)
 - [Concurrency Made Easy](https://dave.cheney.net/paste/concurrency-made-easy.pdf) slides
-- [Never start a goroutine without knowning when it will stop](https://dave.cheney.net/practical-go/presentations/qcon-china.html#_never_start_a_goroutine_without_knowning_when_it_will_stop)
+- [Never start a goroutine without knowning when it will stop](https://dave.cheney.net/practical-go/presentations/qcon-china.html#_never_start_a_goroutine_without_knowning_when_it_will_stop) (Practical Go, QCon Shanghai 2018)
+
+----
 
 ## 6.2 Go uses efficient network polling for some requests
 
-The Go runtime handles network IO using an efficient operating system polling mechanism (kqueue, epoll, windows IOCP, etc).
+The Go runtime handles `network IO` using an **efficient operating system polling mechanism** (kqueue, epoll, windows IOCP, etc).
 
-Many waiting goroutines will be serviced by a single operating system thread.
+Many waiting goroutines will be serviced by a **single OS thread**.
 
-> However, for local file IO, Go does not implement any IO polling.
+However, for local `file IO`, **Go does not implement any IO polling**.
 
-Each operation on a *os.File consumes one operating system thread while in progress.
+**Each operation** on a `*os.File` **consumes one OS thread** while in progress.
 
 Heavy use of local file IO can cause your program to spawn hundreds or thousands of threads; possibly more than your operating system allows.
 
 Your disk subsystem does not expect to be able to handle hundreds or thousands of concurrent IO requests.
 
-> To limit the amount of **concurrent blocking IO**, use a pool of worker goroutines, or a buffered channel as a semaphore.
+> To limit the amount of **concurrent blocking IO**,
+> - use a **pool** of worker goroutines,
+> - or a **buffered channel** as a semaphore.
+>
 > ```go
 > var semaphore = make(chan struct{}, 10)
 > 
@@ -93,12 +98,20 @@ Your disk subsystem does not expect to be able to handle hundreds or thousands o
 > 	<-semaphore // release semaphore
 > }
 > ```
+>
+
+----
 
 ## 6.3 Watch out for IO multipliers in your application
 
-If memory is slow, relatively speaking, then IO is so slow that you should avoid doing it at all costs.
+If memory is slow — relatively speaking — then IO is so slow that you should avoid doing it at all costs.
 
-Most importantly avoid doing IO in the context of a request — don’t make the user wait for your disk subsystem to write to disk, or even read.
+Most importantly avoid doing IO in the context of a request
+- `don't make the user wait for your disk subsystem to write to disk, or even read`.
+
+![](images/latency-allround.jpg)
+
+----
 
 ## 6.4 Use streaming IO interfaces
 
