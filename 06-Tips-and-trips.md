@@ -106,7 +106,7 @@ Your disk subsystem does not expect to be able to handle hundreds or thousands o
 
 If memory is slow — relatively speaking — then IO is so slow that you should avoid doing it at all costs.
 
-Most importantly avoid doing IO in the context of a request
+Most importantly **avoid doing IO in the context of a request**:
 - `don't make the user wait for your disk subsystem to write to disk, or even read`.
 
 ![](images/latency-allround.jpg)
@@ -115,17 +115,19 @@ Most importantly avoid doing IO in the context of a request
 
 ## 6.4 Use streaming IO interfaces
 
-Where-ever possible `avoid` reading data into a `[]byte` and passing it around.
+Where-ever possible `avoid` **reading data into a** `[]byte` **and passing it around**.
 
 Depending on the request you may end up **reading megabytes (or more!) of data into memory**.
 
-This places huge **pressure on the GC**, which will increase the average latency of your application.
+This places huge **pressure on the GC**, which will increase the average **latency** of your application.
 
 Instead use `io.Reader` and `io.Writer` to construct **processing pipelines** to cap the amount of memory in use per request.
 
-For efficiency, **consider implementing** `io.ReaderFrom / io.WriterTo` if you use a lot of `io.Copy`.
+For efficiency, **consider implementing** `io.ReaderFrom / io.WriterTo` **if you use a lot of `io.Copy`**.
 
 These interfaces are **more efficient** and **avoid copying memory into a temporary buffer**.
+
+----
 
 ## 6.5 Timeouts, timeouts, timeouts
 
