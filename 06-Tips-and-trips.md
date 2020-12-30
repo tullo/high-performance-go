@@ -33,17 +33,19 @@ This final section contains a number of tips to micro optimise Go code.
 
 The key feature of Go that makes it a great fit for modern hardware are goroutines.
 
-Goroutines are so easy to use, and so cheap to create, you could think of them as almost free.
+`Goroutines` are so easy to use, and so cheap to create, you could think of them as `almost free`.
 
-The Go runtime has been written for programs 
-- with tens of thousands of goroutines as the norm, 
+The **Go runtime has been written for programs**: 
+- with `tens of thousands of goroutines as the norm`, 
 - hundreds of thousands are not unexpected.
 
-However, each goroutine does consume a **minimum amount of memory for the goroutine’s stack** which is currently at least 2k.
+However, `each goroutine does consume` a minimum amount of `memory for the goroutine's stack` which is currently `at least 2k`.
 
-`2048 * 1,000,000` goroutines == `2GB` of memory, and they haven’t done anything yet.
+`2048 * 1,000,000 goroutines` => `2GB of memory`, and they haven’t done anything yet.
 
-> Maybe this is a lot, maybe it isn’t given the other usages of your application.
+Maybe this is a lot, maybe it isn't given the other usages of your application.
+
+----
 
 ### 6.1.1 Know when to stop a goroutine
 
