@@ -218,8 +218,8 @@ v, ok := m[string(bytes)] // compiler specific optimisation
 This is very specific, it won't work if you do something like:
 
 ```go
-key := string(bytes)
-val, ok := m[key] // No compiler optimization
+key := string(bytes) // No compiler optimization
+val, ok := m[key]
 ```
 
 Write a benchmark comparing these two methods of using a `[]byte` as a `string` map key.

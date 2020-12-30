@@ -45,8 +45,8 @@ func BenchmarkMapLookup2(b *testing.B) {
 	var r string
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		k := string(key)
-		r = capitals[k] // No compiler optimization
+		k := string(key) // No compiler optimization
+		r = capitals[k]
 	}
 	sink = r
 }
