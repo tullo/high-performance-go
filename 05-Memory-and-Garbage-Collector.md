@@ -504,6 +504,9 @@ type S struct {
                 // 4 bytes padding
                 // 24 bytes
 }
+//             ____________________________
+// 24 bytes : |b|padding|float...|int.|padd|
+//             . ....... ........ .... ....
 
 //=============================================================================
 // We can infer how the compiler is going to lay out these fields in memory:
@@ -527,9 +530,12 @@ type S struct {
     b float64   // 8 bytes wide on all platforms
     c int32     // 4 bytes
     a bool      // 1 byte
-    _ [3]byte   // padding <1>
+    _ [3]byte   // padding
                 // 16 bytes
 }
+//             ___________________
+// 16 bytes : |float...|int.|b|pad|
+//             ........ .... . ...
 ```
 
 ## 5.6 Exercises
