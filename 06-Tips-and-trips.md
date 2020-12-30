@@ -135,19 +135,62 @@ These interfaces are **more efficient** and **avoid copying memory into a tempor
 
 You need to **set a timeout on every network request** you make with `SetDeadline, SetReadDeadline, SetWriteDeadline`.
 
+----
+
 ## 6.6 Defer is expensive, or is it?
 
-In Go 1.13 defer records are optimisitically stack allocated.
+Historically `defer` is expensive because it has to record a **closure for defer's arguments**.
 
-This doesn’t remove the overhead of defer's closure, but it does remove the overhead of the heap allocation of the closure.
+```go
+defer mu.Unlock()
+```
+
+is equivalent to
+
+```go
+defer func() {
+        mu.Unlock()
+}()
+```
 
 `defer` is **expensive if the work being done is small**,
-- the classic example is defer' ing a mutex unlock around a struct variable or map lookup.
-- `example/mutex`
+- The classic example is `defer`'ing a **mutex unlock** around a struct variable or **map lookup**
+
+In Go 1.13 `defer records` are [optimisitically stack allocated](https://go-review.googlesource.com/c/go/+/171758):
+
+- This **doesn't remove the overhead** of `defer`'s closure, 
+- but **it does remove the overhead of the heap allocation** of the closure.
 
 This is a case where **readability and maintenance is sacrificed for a performance win**.
 
-You may choose to avoid defer in those situations. Always revisit these decisions.
+**You may choose to avoid `defer` in those situations**.
+
+Always revisit these decisions.
+
+Exercise:
+- Experiment with the `example/mutex` example, `defering` **mu.Unlock** and observing the cost.
+- If you have Go 1.12 installed, compare the performance of defer.
+
+
+```sh
+go test -run=^$ -bench=. -cpu=1,2,4,8,16 ./examples/mutex/
+
+# mu.Unlock()
+BenchmarkInc       	92798424	        12.6 ns/op
+BenchmarkInc-2     	78855828	        15.8 ns/op
+BenchmarkInc-4     	34251460	        34.0 ns/op
+BenchmarkInc-8     	22757475	        53.3 ns/op
+BenchmarkInc-16    	17929219	        65.5 ns/op
+
+# defer mu.Unlock()
+BenchmarkInc       	89228146	        13.1 ns/op
+BenchmarkInc-2     	71024706	        17.7 ns/op
+BenchmarkInc-4     	27881638	        45.2 ns/op
+BenchmarkInc-8     	18966184	        64.8 ns/op
+BenchmarkInc-16    	16338223	        72.4 ns/op
+```
+
+----
 
 ## 6.7 Make the fast path inlinable
 
@@ -158,6 +201,8 @@ The size of a function, it’s complexity, affects the ability of the compiler t
 Mid stack inlining can be used to exploit this to make the fast path of a function inlinable.
 
 [Example: go-review/src/sync/mutex.go](https://go-review.googlesource.com/c/go/+/148959/14/src/sync/mutex.go)
+
+----
 
 ## 6.8 Range
 

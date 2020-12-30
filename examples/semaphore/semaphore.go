@@ -1,5 +1,6 @@
 package p
 
+// Work ...
 type Work int
 
 // Semaphore to limit the amount of concurrent blocking IO
