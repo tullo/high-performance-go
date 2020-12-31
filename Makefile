@@ -108,8 +108,12 @@ inuse-allocs:
 	go run examples/inuseallocs/main.go
 
 block-profiling:
-	go test -run=XXX -bench=ClientServer$$ -blockprofile=/tmp/block.p net/http
-	go tool pprof -http=:8080 /tmp/block.p
+	cd examples/block ; go build && ./block
+	go tool pprof -http=:8080 ./examples/block/block.pprof
+#	go test -run=XXX -bench=ClientServer$$ -blockprofile=/tmp/block.p net/http
+#	go tool pprof -http=:8080 /tmp/block.p
+
+
 
 mutex-profiling:
 	go test -bench=. -cpu=1,2,4,8,16 ./examples/mutex
