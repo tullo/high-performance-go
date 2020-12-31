@@ -330,8 +330,10 @@ Use the latest release and you will get the best performance.
 
 ----
 
-- `g660848, 2019-04-26` https://dave.cheney.net/high-performance-go-workshop/dotgo-paris.html (linket til fra github repo) (sections 1-7) (Paris)
-- `379996b, 2019-07-24` https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html (linket til fra blog) (sections 1-6) (San Diego)
+### Versions
+
+- `379996b, 2019-07-24` [Sections 1-6](https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html) (GopherCon San Diego)
+- `g660848, 2019-04-26` [Sections 1-7](https://dave.cheney.net/high-performance-go-workshop/dotgo-paris.html) (dotGo Paris)
 
 ----
 
