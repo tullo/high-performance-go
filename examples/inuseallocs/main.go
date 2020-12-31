@@ -30,5 +30,5 @@ func allocate() []byte {
 
 // makeByteSlice returns a byte slice of a random length in the range [0, 16384).
 func makeByteSlice() []byte {
-	return make([]byte, rand.Intn(2^14))
+	return make([]byte, rand.Intn(2^14)) // 1 << 14
 }
